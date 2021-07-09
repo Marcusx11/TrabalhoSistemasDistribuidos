@@ -15,7 +15,7 @@ public class Channel {
     private final MessageDispatcher messageDispatcher;
 
     private Channel() throws Exception {
-        channel = new JChannel();
+        channel = new JChannel("src/configs.xml");
         messageDispatcher = new MessageDispatcher(this.channel, null, null);
         channel.connect(Channel.channelName);
     }
