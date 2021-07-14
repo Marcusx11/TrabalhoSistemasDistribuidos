@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
-    private Channel channel;
+    private final Channel channel;
 
     public Bank() throws Exception {
         super();
@@ -22,9 +22,11 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
         try {
             channel.sendAll(body, ResponseMode.GET_ALL);
-            System.out.println("Client request: Register: " + body);
+            System.out.println("> Client request "+ body);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+
 }

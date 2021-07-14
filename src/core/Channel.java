@@ -4,23 +4,30 @@ package core;
 import org.jgroups.*;
 import org.jgroups.blocks.*;
 import org.jgroups.util.*;
-
 import java.util.*;
 
 public class Channel {
-    private static final String channelName = "bankGroup";
+    private static final String channelName = Constants.CHANNEL_NAME;
     private static Channel instance = null;
 
     private final JChannel channel;
     private final MessageDispatcher messageDispatcher;
 
     private Channel() throws Exception {
-        channel = new JChannel("src/configs.xml");
+        // channel = new JChannel("src/configs.xml");
+        channel = new JChannel();
         messageDispatcher = new MessageDispatcher(this.channel, null, null);
         channel.connect(Channel.channelName);
+        channel.getState(null, 10000);
     }
 
+    /**
+     * O receptor irá, por sua vez, lidar com todas as mensagens, visualizar as alterações, implementar a lógica de
+     * transferência de estado e assim por diante.
+     * @param receiver - um receptor instalado neste canal
+     */
     public void setReceiver(Receiver receiver) {
+        System.out.println("> "+receiver.toString() + " was successfully connected to the channel " + Constants.CHANNEL_NAME);
         this.channel.setReceiver(receiver);
     }
 
@@ -34,7 +41,7 @@ public class Channel {
 
     public RspList sendAll(String body, ResponseMode mode) throws Exception {
         Message message = new Message(null, body);
-
+        System.out.println("sendAll");
         RequestOptions requestOptions = new RequestOptions();
         requestOptions.setMode(mode);
         requestOptions.setAnycasting(false);
