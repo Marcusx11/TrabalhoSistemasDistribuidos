@@ -3,30 +3,26 @@ package server;
 import core.*;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
+import org.jgroups.util.Util;
 
 public class BankController extends ReceiverAdapter implements RequestHandler {
     private JChannel channelCluster;
-    private JChannel channelClient;
+    private JChannel channelClient = null;
     private RequestDispatcher dispatcherCluster;
-    private RequestDispatcher dispatcherClient;
+    private RequestDispatcher dispatcherClient = null;
 
-    public void run() throws Exception {
+    public void start() throws Exception {
         try {
             // instancia o canal e o despachante do controle
-            channelCluster = new JChannel("configs.xml");
+            channelCluster = new JChannel("sequencer.xml");
             channelCluster.setReceiver(this);
             dispatcherCluster = new RequestDispatcher(channelCluster, this);
 
-            // Instância o cliente
-            channelClient = new JChannel("configs.xml");
-            channelClient.setReceiver(this);
-            dispatcherClient = new RequestDispatcher(channelClient, this);
-
-            // se conecta aos canais do controle e da visao
-            channelClient.connect(Constants.CHANNEL_CLIENT_NAME);
             channelCluster.connect(Constants.CHANNEL_CLUSTER_NAME);
 
-            for (;;) {}
+            while (true) {
+                Util.sleep(100);
+            }
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -36,6 +32,8 @@ public class BankController extends ReceiverAdapter implements RequestHandler {
     public Object handle(Message message) throws Exception {
         if (message.getObject() instanceof Request) {
             return new Response("Response 1");
+        } else if (message.getObject() instanceof String && message.getObject().equals("quem é o controlador?")) {
+            return channelClient != null ? "Eu sou" : null;
         }
 
         return new Response("Response 2");
@@ -49,6 +47,23 @@ public class BankController extends ReceiverAdapter implements RequestHandler {
     @Override
     public void viewAccepted(View newView) {
         System.out.println("\t[new view cluster]: " + newView);
+        Address meuEndereco = channelCluster.getAddress();
+        Address coordenador = channelCluster.getView().getMembers().get(0);
+
+        if(meuEndereco.equals(coordenador)) {
+            if (channelClient == null) {
+                try {
+                    channelClient = new JChannel("configs.xml");
+                    channelClient.setReceiver(this);
+                    dispatcherClient = new RequestDispatcher(channelClient, this);
+
+                    // se conecta aos canais do controle e da visao
+                    channelClient.connect(Constants.CHANNEL_CLIENT_NAME);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -60,6 +75,6 @@ public class BankController extends ReceiverAdapter implements RequestHandler {
     }
 
     public static void main(String[] args) throws Exception {
-        new BankController().run();
+        new BankController().start();
     }
 }

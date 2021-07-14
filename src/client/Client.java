@@ -3,24 +3,26 @@ package client;
 import core.Constants;
 import core.Request;
 import core.RequestDispatcher;
-import core.Response;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.ResponseMode;
+import org.jgroups.util.RspList;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 public class Client extends ReceiverAdapter implements RequestHandler {
-    private JChannel channelController;
-    private RequestDispatcher dispatcherController;
+    private JChannel channel;
+    private RequestDispatcher dispatcher;
+    private Address controlador;
 
-    public void run() throws Exception {
-        channelController = new JChannel("configs.xml");
-        channelController.setReceiver(this);
-        dispatcherController = new RequestDispatcher(channelController, this);
+    public void start() throws Exception {
+        channel = new JChannel("configs.xml");
+        channel.setReceiver(this);
+        dispatcher = new RequestDispatcher(channel, this);
 
-        channelController.connect(Constants.CHANNEL_CLUSTER_NAME);
+        channel.connect(Constants.CHANNEL_CLIENT_NAME);
 
         eventLoop();
     }
@@ -34,22 +36,36 @@ public class Client extends ReceiverAdapter implements RequestHandler {
             System.out.flush();
             String line = input.readLine();
 
-            dispatcherController.sendRequestMulticast(new Request(line), ResponseMode.GET_ALL);
+            dispatcher.sendRequestUnicast(controlador, new Request(line), ResponseMode.GET_FIRST);
             if(line.startsWith("quit") || line.startsWith("exit")) break;
+        }
+    }
+
+    /**
+     * O retorno de chamada viewAccepted () é chamado sempre que uma nova instância se junta ao cluster ou uma instância
+     * existente sai (travamentos incluídos).
+     * @param newView -
+     */
+    @Override
+    public void viewAccepted(View newView) {
+        System.out.println("\t[new view cluster]: " + newView);
+        try {
+            RspList respostas = dispatcher.sendRequestMulticast("quem é o controlador?", ResponseMode.GET_ALL);
+
+            respostas.values().removeIf(Objects::isNull);
+
+            controlador = (Address) respostas.keySet().toArray()[0];
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public Object handle(Message message) throws Exception {
-        if (message.getObject() instanceof Response) {
-            String body = (String)message.getObject();
-            System.out.println(body);
-        }
-
         return null;
     }
 
     public static void main(String[] args) throws Exception {
-        new Client().run();
+        new Client().start();
     }
 }

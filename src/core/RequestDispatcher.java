@@ -1,14 +1,12 @@
 package core;
 
 import interfaces.RequestDispatcherInterface;
+import org.jgroups.*;
 import org.jgroups.blocks.MessageDispatcher;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.util.RspList;
-import org.jgroups.Address;
-import org.jgroups.JChannel;
-import org.jgroups.Message;
 
 import java.util.Collection;
 
@@ -19,7 +17,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
     public RequestDispatcher(JChannel channel, RequestHandler requestHandler)
     {
         if(channel != null) {
-            this.dispatcher = new MessageDispatcher(channel, null, null, requestHandler);
+            this.dispatcher = new MessageDispatcher(channel, (MessageListener)requestHandler, (MembershipListener)requestHandler, requestHandler);
         }
     }
 
