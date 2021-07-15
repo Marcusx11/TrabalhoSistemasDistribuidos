@@ -1,5 +1,8 @@
 package server.models;
 
+import core.Request;
+import core.RequestCode;
+import core.models.User;
 import interfaces.BankInterface;
 import interfaces.RequestDispatcherInterface;
 import org.jgroups.blocks.ResponseMode;
@@ -16,11 +19,23 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public void register(String name, int age) throws RemoteException {
+    public boolean register(String name, String cpf, String password) throws RemoteException {
         try {
-            dispatcher.sendRequestMulticast("Registra ai amigao: " + name + ", " + age, ResponseMode.GET_ALL);
+            // TODO: Add unique id and password hash
+            User userRegister = new User(name, cpf, password);
+
+            dispatcher.sendRequestMulticast(new Request(RequestCode.REGISTER_USER, userRegister), ResponseMode.GET_FIRST);
+
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return false;
+    }
+
+    @Override
+    public void login(String cpf, String password) throws RemoteException {
+        // ...
     }
 }

@@ -3,5 +3,6 @@ package interfaces;
 import java.rmi.*;
 
 public interface BankInterface extends Remote {
-    void register(String name, int age) throws RemoteException;
+    boolean register(String name, String cpf, String password) throws RemoteException;
+    void login(String cpf, String password) throws RemoteException;
 }

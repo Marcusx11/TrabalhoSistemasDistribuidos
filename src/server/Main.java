@@ -1,6 +1,7 @@
 package server;
 
 import core.*;
+import core.models.User;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.util.Util;
@@ -33,8 +34,18 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
     @Override
     public Object handle(Message message) throws Exception {
-        System.out.println(message.getObject());
-        return null;
+        if (message.getObject() instanceof Request) {
+            Request request = (Request) message.getObject();
+
+            switch (request.getRequestCode()) {
+                case REGISTER_USER:
+                    return this.register((User)request.getBody());
+                default:
+                    return null; // TODO: What to return?
+            }
+        }
+
+        return null; // TODO: What to return?
     }
 
     /**
@@ -68,6 +79,16 @@ public class Main extends ReceiverAdapter implements RequestHandler {
      */
     public void receive(Message message) {
         System.out.println("[receive]: " + message.getSrc() + ": " + message.getObject());
+    }
+
+    private Object register(User user) {
+        System.out.println(user.getName());
+        System.out.println(user.getCpf());
+        System.out.println(user.getPassword());
+
+        // TODO: Save to datatabse
+
+        return null; // TODO: What to return?
     }
 
     public static void main(String[] args) throws Exception {
