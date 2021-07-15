@@ -1,24 +1,27 @@
 package core;
 
 import interfaces.RequestDispatcherInterface;
-import org.jgroups.*;
 import org.jgroups.blocks.MessageDispatcher;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.util.RspList;
+import org.jgroups.*;
 
 import java.util.Collection;
 
 public class RequestDispatcher implements RequestDispatcherInterface
 {
-    private MessageDispatcher dispatcher;
+    private final MessageDispatcher dispatcher;
 
     public RequestDispatcher(JChannel channel, RequestHandler requestHandler)
     {
-        if(channel != null) {
-            this.dispatcher = new MessageDispatcher(channel, (MessageListener)requestHandler, (MembershipListener)requestHandler, requestHandler);
-        }
+        this.dispatcher = new MessageDispatcher(
+            channel,
+            (MessageListener)requestHandler,
+            (MembershipListener)requestHandler,
+            requestHandler
+        );
     }
 
     public RspList sendRequestMulticast(
