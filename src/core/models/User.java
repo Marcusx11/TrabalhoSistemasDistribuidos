@@ -28,6 +28,24 @@ public class User implements Serializable {
         this.cpf = cpf;
     }
 
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getCpf() {
         return cpf;
     }

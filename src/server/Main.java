@@ -1,10 +1,13 @@
 package server;
 
-import core.*;
+import core.Constants;
+import core.Request;
+import core.RequestDispatcher;
 import core.models.User;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.util.Util;
+import server.database.Database;
 import server.models.Bank;
 
 import java.net.MalformedURLException;
@@ -16,13 +19,16 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     private JChannel channelCluster;
     private RequestDispatcher dispatcherCluster;
 
-    public void start() throws Exception {
+    public void start() {
         try {
             channelCluster = new JChannel("sequencer.xml");
             dispatcherCluster = new RequestDispatcher(channelCluster, this);
 
             channelCluster.setReceiver(this);
             channelCluster.connect(Constants.CHANNEL_CLUSTER_NAME);
+
+            // Create database tables if they do not exist
+            Database.bootstrap();
 
             while (true) {
                 Util.sleep(100);
