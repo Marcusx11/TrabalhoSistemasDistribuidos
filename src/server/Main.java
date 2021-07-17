@@ -1,19 +1,19 @@
 package server;
 
-import core.Constants;
-import core.Request;
-import core.RequestDispatcher;
-import core.models.User;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.util.Util;
-import server.database.Database;
-import server.models.Bank;
-
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import core.Constants;
+import core.Request;
+import core.RequestDispatcher;
+import core.models.user.User;
+import core.database.Database;
+import core.models.user.UserDAO;
+import server.models.Bank;
 
 public class Main extends ReceiverAdapter implements RequestHandler {
     private JChannel channelCluster;
@@ -27,8 +27,7 @@ public class Main extends ReceiverAdapter implements RequestHandler {
             channelCluster.setReceiver(this);
             channelCluster.connect(Constants.CHANNEL_CLUSTER_NAME);
 
-            // Create database tables if they do not exist
-            Database.bootstrap();
+            Database.bootstrap(channelCluster.getAddress().toString());
 
             while (true) {
                 Util.sleep(100);
@@ -39,19 +38,17 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     }
 
     @Override
-    public Object handle(Message message) throws Exception {
+    public Object handle(Message message) {
         if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
 
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
                     return this.register((User)request.getBody());
-                default:
-                    return null; // TODO: What to return?
             }
         }
 
-        return null; // TODO: What to return?
+        return false;
     }
 
     /**
@@ -87,17 +84,15 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         System.out.println("[receive]: " + message.getSrc() + ": " + message.getObject());
     }
 
-    private Object register(User user) {
-        System.out.println(user.getName());
-        System.out.println(user.getCpf());
-        System.out.println(user.getPassword());
+    private boolean register(User user) {
+        UserDAO userDAO = new UserDAO();
 
-        // TODO: Save to datatabse
+        userDAO.create(user);
 
-        return null; // TODO: What to return?
+        return true;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new Main().start();
     }
 }

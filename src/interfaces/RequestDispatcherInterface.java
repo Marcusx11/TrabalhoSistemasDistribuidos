@@ -3,7 +3,6 @@ package interfaces;
 import org.jgroups.Address;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.util.RspList;
-
 import java.util.Collection;
 
 public interface RequestDispatcherInterface {

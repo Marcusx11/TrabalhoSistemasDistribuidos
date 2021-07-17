@@ -1,14 +1,13 @@
 package core;
 
-import interfaces.RequestDispatcherInterface;
 import org.jgroups.blocks.MessageDispatcher;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.util.RspList;
 import org.jgroups.*;
-
 import java.util.Collection;
+import interfaces.RequestDispatcherInterface;
 
 public class RequestDispatcher implements RequestDispatcherInterface
 {

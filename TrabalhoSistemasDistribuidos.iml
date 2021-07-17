@@ -16,19 +16,10 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/ormlite-core-5.6.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/ormlite-jdbc-5.6.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/sqlite-jdbc-3.36.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

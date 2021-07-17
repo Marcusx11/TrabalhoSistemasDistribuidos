@@ -1,4 +1,4 @@
-package core.models;
+package core.models.user;
 
 import java.io.Serializable;
 
@@ -28,7 +28,6 @@ public class User implements Serializable {
         this.cpf = cpf;
     }
 
-
     public void setName(String name) {
         this.name = name;
     }
@@ -36,7 +35,6 @@ public class User implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
-
 
     public void setCpf(String cpf) {
         this.cpf = cpf;
