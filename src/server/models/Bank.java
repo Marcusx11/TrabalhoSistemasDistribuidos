@@ -9,6 +9,7 @@ import org.jgroups.blocks.ResponseMode;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
     RequestDispatcherInterface dispatcher;
@@ -23,8 +24,14 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         try {
             // TODO: Add unique id and password hash
             User userRegister = new User(name, cpf, password);
+            dispatcher.sendRequestMulticast(
+                    new Request(RequestCode.REGISTER_USER, userRegister),
+                    ResponseMode.GET_FIRST);
 
-            dispatcher.sendRequestMulticast(new Request(RequestCode.REGISTER_USER, userRegister), ResponseMode.GET_FIRST);
+            UserDAO userDAO = new UserDAO();
+
+            userDAO.create(userRegister);
+
 
             return true;
         } catch (Exception e) {
