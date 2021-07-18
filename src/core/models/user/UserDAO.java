@@ -43,6 +43,20 @@ public class UserDAO {
         return users;
     }
 
+    public User findBy(String field, String where) {
+        List<User> users = new ArrayList<User>();
+        try (Connection connection = ConnectionFactory.getInstance()) {
+            String sql = "SELECT * FROM users WHERE ?";
+
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, field + where);
+
+            return getUsers(users, stmt).get(0);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<User> selectBy(String field, String where) {
         List<User> users = new ArrayList<User>();
         try (Connection connection = ConnectionFactory.getInstance()) {

@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.util.List;
+
 import core.Constants;
 import core.Request;
 import core.RequestDispatcher;
@@ -16,18 +18,18 @@ import core.models.user.UserDAO;
 import server.models.Bank;
 
 public class Main extends ReceiverAdapter implements RequestHandler {
-    private JChannel channelCluster;
-    private RequestDispatcher dispatcherCluster;
+    private JChannel channel;
+    private RequestDispatcher dispatcher;
 
     public void start() {
         try {
-            channelCluster = new JChannel("sequencer.xml");
-            dispatcherCluster = new RequestDispatcher(channelCluster, this);
+            channel = new JChannel("sequencer.xml");
+            dispatcher = new RequestDispatcher(channel, this);
 
-            channelCluster.setReceiver(this);
-            channelCluster.connect(Constants.CHANNEL_CLUSTER_NAME);
+            channel.setReceiver(this);
+            channel.connect(Constants.CHANNEL_CLUSTER_NAME);
 
-            Database.bootstrap(channelCluster.getAddress().toString());
+            Database.bootstrap(channel.getAddress().toString());
 
             while (true) {
                 Util.sleep(100);
@@ -37,18 +39,17 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         }
     }
 
-    @Override
-    public Object handle(Message message) {
-        if (message.getObject() instanceof Request) {
-            Request request = (Request) message.getObject();
+    private void createRmiInstance() {
+        try {
+            LocateRegistry.createRegistry(1099);
+        } catch (RemoteException ignored) {}
 
-            switch (request.getRequestCode()) {
-                case REGISTER_USER:
-                    return this.register((User)request.getBody());
-            }
+        try {
+            Bank bank = new Bank(dispatcher, channel);
+            Naming.rebind(Constants.RMI_NAME, bank);
+        } catch (RemoteException | MalformedURLException e) {
+            e.printStackTrace();
         }
-
-        return false;
     }
 
     /**
@@ -59,20 +60,11 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     @Override
     public void viewAccepted(View newView) {
         System.out.println("\t[new member]: " + newView);
-        Address myAddress = channelCluster.getAddress();
-        Address coordinator = channelCluster.getView().getMembers().get(0);
+        Address myAddress = channel.getAddress();
+        Address coordinator = channel.getView().getMembers().get(0);
 
         if(myAddress.equals(coordinator)) {
-            try {
-                LocateRegistry.createRegistry(1099);
-            } catch (RemoteException ignored) {}
-
-            try {
-                Bank bank = new Bank(dispatcherCluster);
-                Naming.rebind(Constants.RMI_NAME, bank);
-            } catch (RemoteException | MalformedURLException e) {
-                e.printStackTrace();
-            }
+            this.createRmiInstance();
         }
     }
 
@@ -84,12 +76,32 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         System.out.println("[receive]: " + message.getSrc() + ": " + message.getObject());
     }
 
+    @Override
+    public Object handle(Message message) {
+        if (message.getObject() instanceof Request) {
+            Request request = (Request) message.getObject();
+
+            switch (request.getRequestCode()) {
+                case REGISTER_USER:
+                    return this.register((User) request.getBody());
+                case LOGIN_USER:
+                    return this.login((User) request.getBody());
+            }
+        }
+
+        return false;
+    }
+
     private boolean register(User user) {
         UserDAO userDAO = new UserDAO();
 
         userDAO.create(user);
 
         return true;
+    }
+
+    private User login(User userParams) {
+        return null;
     }
 
     public static void main(String[] args) {

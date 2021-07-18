@@ -1,5 +1,6 @@
 package server.models;
 
+import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -10,11 +11,16 @@ import core.RequestCode;
 import core.Request;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
-    RequestDispatcherInterface dispatcher;
+    private final JChannel channel;
+    private final RequestDispatcherInterface dispatcher;
 
-    public Bank(RequestDispatcherInterface requestDispatcher) throws RemoteException {
+    public Bank(
+        RequestDispatcherInterface dispatcher,
+        JChannel channel
+    ) throws RemoteException {
         super();
-        dispatcher = requestDispatcher;
+        this.dispatcher = dispatcher;
+        this.channel = channel;
     }
 
     @Override
@@ -36,7 +42,19 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public void login(String cpf, String password) throws RemoteException {
-        // ...
+    public User login(String cpf, String password) throws RemoteException {
+        try {
+            Object data = dispatcher.sendRequestUnicast(this.channel.getAddress(),
+                    new Request(RequestCode.LOGIN_USER, null),
+                    ResponseMode.GET_FIRST);
+
+            if (data != null) {
+                return (User) data;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
