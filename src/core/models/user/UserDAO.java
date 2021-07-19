@@ -25,7 +25,8 @@ public class UserDAO {
         }
     }
 
-    private List<User> getUsers(List<User> users, PreparedStatement stmt) throws SQLException {
+    private List<User> getUsers(PreparedStatement stmt) throws SQLException {
+        List<User> users = new ArrayList<User>();
         ResultSet results = stmt.executeQuery();
 
         while (results.next()) {
@@ -44,39 +45,36 @@ public class UserDAO {
     }
 
     public User findBy(String field, String where) {
-        List<User> users = new ArrayList<User>();
         try (Connection connection = ConnectionFactory.getConnection()) {
-            String sql = "SELECT * FROM users WHERE ?";
+            String sql = "SELECT * FROM users WHERE ? LIMIT 1";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, field + where);
 
-            return getUsers(users, stmt).get(0);
+            return getUsers(stmt).get(0);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public List<User> selectBy(String field, String where) {
-        List<User> users = new ArrayList<User>();
         try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users WHERE ?";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, field + where);
 
-            return getUsers(users, stmt);
+            return getUsers(stmt);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public List<User> selectAll() {
-        List<User> users = new ArrayList<User>();
         try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users";
             PreparedStatement stmt = connection.prepareStatement(sql);
-            return getUsers(users, stmt);
+            return getUsers(stmt);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
