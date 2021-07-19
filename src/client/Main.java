@@ -19,10 +19,30 @@ public class Main {
             bank = (BankInterface) Naming.lookup(Constants.RMI_URL);
             input = new Scanner(System.in);
 
-            viewLogin();
-            //viewRegister();
+            viewMenu();
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void viewMenu() throws RemoteException{
+        while (true) {
+            System.out.println("**** Menu ****");
+            System.out.println("[1] - Login");
+            System.out.println("[2] - Register");
+            System.out.print("> ");
+
+            String option = input.nextLine();
+            switch (option) {
+                case "1":
+                    viewLogin();
+                    break;
+                case "2":
+                    viewRegister();
+                    break;
+                default:
+                    System.out.println("invalid option");
+            }
         }
     }
 

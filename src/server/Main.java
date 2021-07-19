@@ -101,7 +101,11 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     }
 
     private User login(User userParams) {
-        return null;
+        UserDAO userDAO = new UserDAO();
+
+        User user = userDAO.findBy("cpf", userParams.getCpf());
+        System.out.println(user);
+        return user;
     }
 
     public static void main(String[] args) {

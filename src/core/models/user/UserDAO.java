@@ -10,7 +10,7 @@ import core.database.ConnectionFactory;
 
 public class UserDAO {
     public void create(User user) {
-        try (Connection connection = ConnectionFactory.getInstance()) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "INSERT INTO users (name, cpf, password) VALUES (?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(sql);
 
@@ -45,7 +45,7 @@ public class UserDAO {
 
     public User findBy(String field, String where) {
         List<User> users = new ArrayList<User>();
-        try (Connection connection = ConnectionFactory.getInstance()) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users WHERE ?";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -59,7 +59,7 @@ public class UserDAO {
 
     public List<User> selectBy(String field, String where) {
         List<User> users = new ArrayList<User>();
-        try (Connection connection = ConnectionFactory.getInstance()) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users WHERE ?";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -73,7 +73,7 @@ public class UserDAO {
 
     public List<User> selectAll() {
         List<User> users = new ArrayList<User>();
-        try (Connection connection = ConnectionFactory.getInstance()) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users";
             PreparedStatement stmt = connection.prepareStatement(sql);
             return getUsers(users, stmt);

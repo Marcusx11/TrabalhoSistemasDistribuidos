@@ -44,8 +44,12 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public User login(String cpf, String password) throws RemoteException {
         try {
+            User userData = new User();
+            userData.setCpf(cpf);
+            userData.setPassword(password);
+
             Object data = dispatcher.sendRequestUnicast(this.channel.getAddress(),
-                    new Request(RequestCode.LOGIN_USER, null),
+                    new Request(RequestCode.LOGIN_USER, userData),
                     ResponseMode.GET_FIRST);
 
             if (data != null) {

@@ -7,18 +7,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConnectionFactory {
-    private static Connection instance = null;
+    private static String url = null;
 
-    public static Connection getInstance() {
-        if (instance == null) {
-            throw new AssertionError("You have to call init first");
-        }
-
-        return instance;
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url);
     }
 
     public synchronized static Connection init(String identifier) {
-        if (instance != null) {
+        if (url != null) {
             throw new AssertionError("Class ConnectionFactory already initialized");
         }
 
@@ -28,11 +24,13 @@ public class ConnectionFactory {
                 file.createNewFile();
             }
 
-            instance = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
-        } catch (SQLException | IOException throwables) {
+            url = "jdbc:sqlite:" + file.getAbsolutePath();
+
+            return getConnection();
+        } catch (IOException | SQLException throwables) {
             throwables.printStackTrace();
         }
 
-        return instance;
+        return null;
     }
 }
