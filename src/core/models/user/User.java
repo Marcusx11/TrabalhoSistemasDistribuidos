@@ -77,4 +77,14 @@ public class User implements Serializable {
     public long getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 }

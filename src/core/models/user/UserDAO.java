@@ -1,6 +1,9 @@
 package core.models.user;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import core.database.ConnectionFactory;
@@ -8,15 +11,12 @@ import core.database.ConnectionFactory;
 public class UserDAO {
     public void create(User user) {
         try (Connection connection = ConnectionFactory.getConnection()) {
-            String sql = "INSERT INTO users (name, cpf, password, online, balance, id) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO users (name, cpf, password) VALUES (?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(sql);
 
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getCpf());
             stmt.setString(3, user.getPassword());
-            stmt.setInt(4, user.getOnline());
-            stmt.setFloat(5, user.getBalance());
-            stmt.setLong(6, user.getId());
 
             stmt.execute();
             stmt.close();
@@ -25,41 +25,46 @@ public class UserDAO {
         }
     }
 
-    public void update(User user) {
+    private List<User> getUsers(PreparedStatement stmt) throws SQLException {
+        List<User> users = new ArrayList<User>();
+        ResultSet results = stmt.executeQuery();
+
+        while (results.next()) {
+            User user = new User();
+            user.setCpf(results.getString("cpf"));
+            user.setName(results.getString("name"));
+            user.setPassword(results.getString("password"));
+
+            users.add(user);
+        }
+
+        results.close();
+        stmt.close();
+
+        return users;
+    }
+
+    public User findBy(String field, String where) {
         try (Connection connection = ConnectionFactory.getConnection()) {
-            String sql = "UPDATE users SET " +
-                "name = ?, " +
-                "cpf = ?, " +
-                "online = ? " +
-                "WHERE cpf = ?";
+            String sql = "SELECT * FROM users WHERE ? LIMIT 1";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, field + where);
 
-            stmt.setString(1, user.getName());
-            stmt.setString(2, user.getCpf());
-            stmt.setInt(3, user.getOnline());
-            stmt.setString(4, user.getCpf());
-
-            stmt.execute();
-            stmt.close();
+            return getUsers(stmt).get(0);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public User findBy(String field, String value) {
+    public List<User> selectBy(String field, String where) {
         try (Connection connection = ConnectionFactory.getConnection()) {
-            Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery("SELECT * FROM users WHERE " + field + " = " + value + " LIMIT 1");
+            String sql = "SELECT * FROM users WHERE ?";
 
-            User user = null;
-            while (results.next()) {
-                user = new User();
-                user.setCpf(results.getString("cpf"));
-                user.setName(results.getString("name"));
-                user.setPassword(results.getString("password"));
-            }
-            return user;
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, field + where);
+
+            return getUsers(stmt);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -67,21 +72,9 @@ public class UserDAO {
 
     public List<User> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {
-            Statement statement = connection.createStatement();
-
-            List<User> users = new ArrayList<User>();
-            ResultSet results = statement.executeQuery("SELECT * FROM users");
-
-            while (results.next()) {
-                User user = new User();
-                user.setCpf(results.getString("cpf"));
-                user.setName(results.getString("name"));
-                user.setPassword(results.getString("password"));
-
-                users.add(user);
-            }
-
-            return users;
+            String sql = "SELECT * FROM users";
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            return getUsers(stmt);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
