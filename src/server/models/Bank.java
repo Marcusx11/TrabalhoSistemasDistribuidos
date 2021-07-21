@@ -1,6 +1,6 @@
 package server.models;
 
-import core.models.user.UserDAO;
+import core.Response;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
@@ -11,6 +11,7 @@ import core.models.user.User;
 import core.RequestCode;
 import core.Request;
 import org.jgroups.blocks.atomic.Counter;
+import org.jgroups.util.RspList;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
     private final JChannel channel;
@@ -28,38 +29,17 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public boolean register(String name, String cpf, String password) throws RemoteException {
+    public Response register(String name, String cpf, String password) throws RemoteException {
         try {
             // TODO: Add password hash
             long id = counter.incrementAndGet();
             User userRegister = new User(name, cpf, password, id);
 
-            dispatcher.sendRequestMulticast(
+            RspList<Response> results = dispatcher.sendRequestMulticast(
                 new Request(RequestCode.REGISTER_USER, userRegister),
                 ResponseMode.GET_FIRST);
 
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    @Override
-    public User login(String cpf, String password) throws RemoteException {
-        try {
-            User userParams = new User();
-            userParams.setCpf(cpf);
-            userParams.setPassword(password);
-
-            Object user = dispatcher.sendRequestUnicast(this.channel.getAddress(),
-                    new Request(RequestCode.LOGIN_USER, userParams),
-                    ResponseMode.GET_FIRST);
-
-            if (user != null) {
-                return (User) user;
-            }
+            return results.getFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,22 +48,27 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public double consultarSaldo(String cpf, String password) throws RemoteException {
+    public Response login(String cpf, String password) throws RemoteException {
         try {
-            User userParams = UserDAO.findByCpfAndPassword(cpf, password);
+            User userParams = new User();
+            userParams.setCpf(cpf);
+            userParams.setPassword(password);
+            userParams.setOnline(1);
 
-            Object user = dispatcher.sendRequestUnicast(this.channel.getAddress(),
-                    new Request(RequestCode.CONSULTA_SALDO, userParams), ResponseMode.GET_FIRST);
+            RspList<Response> results = dispatcher.sendRequestMulticast(new Request(RequestCode.LOGIN_USER, userParams),
+                    ResponseMode.GET_FIRST);
 
-            User response = (User) user;
-
-            if (user != null) {
-                return response.getBalance();
-            }
-
+            return results.getFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return -1;
+
+        return null;
+    }
+
+    @Override
+    public Response balance(User user) throws RemoteException {
+        return null;
+
     }
 }
