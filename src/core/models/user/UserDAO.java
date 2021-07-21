@@ -1,9 +1,6 @@
 package core.models.user;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import core.database.ConnectionFactory;
@@ -52,6 +49,30 @@ public class UserDAO {
             stmt.setString(1, field + where);
 
             return getUsers(stmt).get(0);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static User findByCpfAndPassword(String cpf, String password) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
+            Statement statement = connection.createStatement();
+            String sql = "SELECT * FROM users WHERE cpf = " + cpf + " AND password = " + password + " LIMIT 1";
+
+            ResultSet rs = statement.executeQuery(sql);
+            User user = new User();
+
+            while (rs.next()) {
+                user.setId(rs.getLong("id"));
+                user.setName(rs.getString("name"));
+                user.setCpf(rs.getString("cpf"));
+                user.setPassword(rs.getString("password"));
+
+                user.get
+            }
+
+            return user;
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

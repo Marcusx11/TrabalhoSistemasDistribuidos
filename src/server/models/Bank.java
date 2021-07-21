@@ -1,5 +1,6 @@
 package server.models;
 
+import core.models.user.UserDAO;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
@@ -64,5 +65,25 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         }
 
         return null;
+    }
+
+    @Override
+    public double consultarSaldo(String cpf, String password) throws RemoteException {
+        try {
+            User userParams = UserDAO.findByCpfAndPassword(cpf, password);
+
+            Object user = dispatcher.sendRequestUnicast(this.channel.getAddress(),
+                    new Request(RequestCode.CONSULTA_SALDO, userParams), ResponseMode.GET_FIRST);
+
+            User response = (User) user;
+
+            if (user != null) {
+                return response.getBalance();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
