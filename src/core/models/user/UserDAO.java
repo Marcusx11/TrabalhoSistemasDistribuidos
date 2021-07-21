@@ -70,6 +70,7 @@ public class UserDAO {
         }
     }
 
+
     public List<User> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "SELECT * FROM users";
