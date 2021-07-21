@@ -14,6 +14,8 @@ public class Main {
 
     private static Scanner input;
 
+    private static User userLogado;
+
     public static void main(String[] args) {
         try {
             bank = (BankInterface) Naming.lookup(Constants.RMI_URL);
@@ -65,6 +67,16 @@ public class Main {
         System.out.print("Password: ");
         String password = input.nextLine();
 
-        User user = bank.login(cpf, password);
+        userLogado = bank.login(cpf, password);
+    }
+
+    public static void viewHome() throws RemoteException {
+        String mensagem = "**** Operações ****\n";
+        mensagem += "[1] - Consultar saldo\n";
+        mensagem += "[2] - Transferir valor\n";
+        mensagem += "[3] - Consultar histórico\n";
+        mensagem += "[4] - Consultar montante do banco\n";
+        mensagem += "> ";
+        System.out.println(mensagem);
     }
 }
