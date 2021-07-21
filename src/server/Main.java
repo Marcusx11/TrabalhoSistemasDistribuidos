@@ -1,17 +1,17 @@
 package server;
 
+import core.*;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
+import org.jgroups.blocks.ResponseMode;
+import org.jgroups.blocks.atomic.Counter;
+import org.jgroups.blocks.atomic.CounterService;
 import org.jgroups.util.Util;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.util.List;
 
-import core.Constants;
-import core.Request;
-import core.RequestDispatcher;
 import core.models.user.User;
 import core.database.Database;
 import core.models.user.UserDAO;
@@ -20,11 +20,16 @@ import server.models.Bank;
 public class Main extends ReceiverAdapter implements RequestHandler {
     private JChannel channel;
     private RequestDispatcher dispatcher;
+    private Counter counter;
 
     public void start() {
         try {
-            channel = new JChannel("sequencer.xml");
+            channel = new JChannel("src/configs.xml");
             dispatcher = new RequestDispatcher(channel, this);
+
+            CounterService counterService = new CounterService(channel);
+            channel.connect("counter-cluster");
+            counter = counterService.getOrCreateCounter("id", 1);
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
@@ -45,7 +50,7 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         } catch (RemoteException ignored) {}
 
         try {
-            Bank bank = new Bank(dispatcher, channel);
+            Bank bank = new Bank(dispatcher, channel, counter);
             Naming.rebind(Constants.RMI_NAME, bank);
         } catch (RemoteException | MalformedURLException e) {
             e.printStackTrace();
@@ -68,44 +73,69 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         }
     }
 
-    /**
-     * obtemos uma mensagem como argumento.
-     * @param message
-     */
-    public void receive(Message message) {
-        System.out.println("[receive]: " + message.getSrc() + ": " + message.getObject());
-    }
-
     @Override
     public Object handle(Message message) {
         if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
-
+            System.out.println("Requisição: " + request.getRequestCode());
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
                     return this.register((User) request.getBody());
                 case LOGIN_USER:
                     return this.login((User) request.getBody());
+                case DEFINE_USER_ONLINE:
+                    return this.defineUserOnline((User) request.getBody());
             }
         }
 
         return false;
     }
 
-    private boolean register(User user) {
-        UserDAO userDAO = new UserDAO();
+    private Response register(User user) {
+        try {
+            UserDAO userDAO = new UserDAO();
+            user.setBalance(1000);
+            userDAO.create(user);
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "There was a problem creating this user. Please try again.");
+        }
 
-        userDAO.create(user);
-
-        return true;
+        return new Response(ResponseCode.OK, "The user was successfully created.");
     }
 
-    private User login(User userParams) {
+    private Response login(User userParams) {
         UserDAO userDAO = new UserDAO();
 
-        User user = userDAO.findBy("cpf", userParams.getCpf());
-        System.out.println(user);
-        return user;
+        try {
+            User user = userDAO.findBy("cpf", userParams.getCpf());
+
+            if (user != null) {
+                if (userParams.getPassword().equals(user.getPassword())) {
+                    // TODO: Está dando ruim aqui maninho
+                    dispatcher.sendRequestMulticast(
+                            new Request(RequestCode.DEFINE_USER_ONLINE, user),
+                            ResponseMode.GET_FIRST);
+
+                    return new Response(ResponseCode.OK, user);
+                }
+            }
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "There was a problem with login. Please try again.");
+        }
+
+        return new Response(ResponseCode.ERROR, "Invalid password or CPF. Please try again.");
+    }
+
+    public Response defineUserOnline(User user) {
+        try {
+            UserDAO userDAO = new UserDAO();
+            user.setOnline(1);
+            userDAO.update(user);
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "There was a problem with login. Please try again.");
+        }
+
+        return new Response(ResponseCode.OK, null);
     }
 
     public static void main(String[] args) {

@@ -6,7 +6,13 @@ public class Database {
 
         try (Connection connection = ConnectionFactory.init(id)) {
             String sql = "CREATE TABLE IF NOT EXISTS users (" +
-                    "name VARCHAR(30), cpf VARCHAR (11), password VARCHAR(15))";
+                    "id INTEGER NOT NULL PRIMARY KEY, " +
+                    "name VARCHAR(30) NOT NULL, " +
+                    "cpf VARCHAR (11) UNIQUE NOT NULL," +
+                    "password VARCHAR(15) NOT NULL, " +
+                    "online INTEGER NOT NULL DEFAULT(0), " +
+                    "balance REAL NOT NULL)";
+
             System.out.println("Create users table");
 
             connection.prepareStatement(sql).execute();
