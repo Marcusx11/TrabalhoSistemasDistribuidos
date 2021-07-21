@@ -76,7 +76,6 @@ public class User implements Serializable {
                 ", name='" + name + '\'' +
                 ", cpf='" + cpf + '\'' +
                 ", password='" + password + '\'' +
-                ", online=" + online +
                 '}';
     }
 }

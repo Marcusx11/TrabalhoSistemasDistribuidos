@@ -69,5 +69,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public Response balance(User user) throws RemoteException {
         return null;
+
     }
 }

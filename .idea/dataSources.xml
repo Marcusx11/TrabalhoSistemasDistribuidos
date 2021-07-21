@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="bank-DESKTOP-5U5H4AC-63609" uuid="058d6a42-95aa-4980-9336-f8bf83c39764">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:E:\Git\TrabalhoSistemasDistribuidos\data\bank-DESKTOP-5U5H4AC-63609.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="bank-DESKTOP-5U5H4AC-584" uuid="27994ffa-af7f-4038-a307-e388590b2eac">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:E:\Git\TrabalhoSistemasDistribuidos\data\bank-DESKTOP-5U5H4AC-584.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="bank-DESKTOP-5U5H4AC-5490" uuid="8d8f440e-0a88-4cb2-b873-b360260bf28c">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:E:\Git\TrabalhoSistemasDistribuidos\data\bank-DESKTOP-5U5H4AC-5490.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="bank-DESKTOP-5U5H4AC-32577" uuid="dcc573fb-c18d-4351-ba03-10a113f1d62f">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:E:\Git\TrabalhoSistemasDistribuidos\data\bank-DESKTOP-5U5H4AC-32577.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+  </component>
+</project>
