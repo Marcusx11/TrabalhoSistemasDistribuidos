@@ -3,8 +3,8 @@ package core;
 import java.io.Serializable;
 
 public class Request implements Serializable {
-    private RequestCode requestCode;
-    private Object body;
+    private final RequestCode requestCode;
+    private final Object body;
 
     public Request(RequestCode requestCode, Object body) {
         this.requestCode = requestCode;
@@ -17,5 +17,13 @@ public class Request implements Serializable {
 
     public RequestCode getRequestCode() {
         return requestCode;
+    }
+
+    @Override
+    public String toString() {
+        return "Request{" +
+                "requestCode=" + requestCode +
+                ", body=" + body +
+                '}';
     }
 }

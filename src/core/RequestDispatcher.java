@@ -23,7 +23,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
         );
     }
 
-    public RspList sendRequestMulticast(
+    public RspList<Response> sendRequestMulticast(
             Object value,
             ResponseMode responseMode
     ) throws Exception
@@ -37,7 +37,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
         return this.dispatcher.castMessage(null, message, options);
     }
 
-    public RspList sendRequestMulticast(
+    public RspList<Response> sendRequestMulticast(
             Object value,
             ResponseMode responseMode,
             Address removeAdd
@@ -53,7 +53,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
         return this.dispatcher.castMessage(null, message, options);
     }
 
-    public RspList sendRequestAnycast(
+    public RspList<Response> sendRequestAnycast(
             Collection<Address> cluster,
             Object value,
             ResponseMode responseMode
@@ -68,7 +68,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
         return this.dispatcher.castMessage(cluster, message, options);
     }
 
-    public RspList sendRequestAnycast(
+    public RspList<Response> sendRequestAnycast(
             Collection<Address> cluster,
             Object value,
             ResponseMode responseMode,

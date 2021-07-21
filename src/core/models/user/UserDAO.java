@@ -8,15 +8,14 @@ import core.database.ConnectionFactory;
 public class UserDAO {
     public void create(User user) {
         try (Connection connection = ConnectionFactory.getConnection()) {
-            String sql = "INSERT INTO users (name, cpf, password, online, balance, id) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO users (name, cpf, password, online, id) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(sql);
 
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getCpf());
             stmt.setString(3, user.getPassword());
             stmt.setInt(4, user.getOnline());
-            stmt.setFloat(5, user.getBalance());
-            stmt.setLong(6, user.getId());
+            stmt.setLong(5, user.getId());
 
             stmt.execute();
             stmt.close();
@@ -31,14 +30,14 @@ public class UserDAO {
                 "name = ?, " +
                 "cpf = ?, " +
                 "online = ? " +
-                "WHERE cpf = ?";
+                "WHERE id = ?";
 
             PreparedStatement stmt = connection.prepareStatement(sql);
 
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getCpf());
             stmt.setInt(3, user.getOnline());
-            stmt.setString(4, user.getCpf());
+            stmt.setLong(4, user.getId());
 
             stmt.execute();
             stmt.close();
@@ -55,10 +54,13 @@ public class UserDAO {
             User user = null;
             while (results.next()) {
                 user = new User();
+                user.setId(results.getLong("id"));
                 user.setCpf(results.getString("cpf"));
                 user.setName(results.getString("name"));
                 user.setPassword(results.getString("password"));
+                user.setOnline(results.getInt("online"));
             }
+
             return user;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -68,15 +70,16 @@ public class UserDAO {
     public List<User> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {
             Statement statement = connection.createStatement();
-
-            List<User> users = new ArrayList<User>();
             ResultSet results = statement.executeQuery("SELECT * FROM users");
 
+            List<User> users = new ArrayList<User>();
             while (results.next()) {
                 User user = new User();
+                user.setId(results.getLong("id"));
                 user.setCpf(results.getString("cpf"));
                 user.setName(results.getString("name"));
                 user.setPassword(results.getString("password"));
+                user.setOnline(results.getInt("online"));
 
                 users.add(user);
             }

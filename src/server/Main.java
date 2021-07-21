@@ -3,7 +3,6 @@ package server;
 import core.*;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
-import org.jgroups.blocks.ResponseMode;
 import org.jgroups.blocks.atomic.Counter;
 import org.jgroups.blocks.atomic.CounterService;
 import org.jgroups.util.Util;
@@ -11,7 +10,6 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-
 import core.models.user.User;
 import core.database.Database;
 import core.models.user.UserDAO;
@@ -77,14 +75,12 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     public Object handle(Message message) {
         if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
-            System.out.println("Requisição: " + request.getRequestCode());
+
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
                     return this.register((User) request.getBody());
                 case LOGIN_USER:
                     return this.login((User) request.getBody());
-                case DEFINE_USER_ONLINE:
-                    return this.defineUserOnline((User) request.getBody());
             }
         }
 
@@ -94,13 +90,12 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     private Response register(User user) {
         try {
             UserDAO userDAO = new UserDAO();
-            user.setBalance(1000);
             userDAO.create(user);
+
+            return new Response(ResponseCode.OK, "The user was successfully created.");
         } catch (Exception e) {
             return new Response(ResponseCode.ERROR, "There was a problem creating this user. Please try again.");
         }
-
-        return new Response(ResponseCode.OK, "The user was successfully created.");
     }
 
     private Response login(User userParams) {
@@ -111,31 +106,16 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
             if (user != null) {
                 if (userParams.getPassword().equals(user.getPassword())) {
-                    // TODO: Está dando ruim aqui maninho
-                    dispatcher.sendRequestMulticast(
-                            new Request(RequestCode.DEFINE_USER_ONLINE, user),
-                            ResponseMode.GET_FIRST);
-
+                    user.setOnline(1);
+                    userDAO.update(user);
                     return new Response(ResponseCode.OK, user);
                 }
             }
+
+            return new Response(ResponseCode.ERROR, "Invalid password or CPF. Please try again.");
         } catch (Exception e) {
             return new Response(ResponseCode.ERROR, "There was a problem with login. Please try again.");
         }
-
-        return new Response(ResponseCode.ERROR, "Invalid password or CPF. Please try again.");
-    }
-
-    public Response defineUserOnline(User user) {
-        try {
-            UserDAO userDAO = new UserDAO();
-            user.setOnline(1);
-            userDAO.update(user);
-        } catch (Exception e) {
-            return new Response(ResponseCode.ERROR, "There was a problem with login. Please try again.");
-        }
-
-        return new Response(ResponseCode.OK, null);
     }
 
     public static void main(String[] args) {

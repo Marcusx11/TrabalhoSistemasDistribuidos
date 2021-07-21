@@ -7,7 +7,6 @@ public class User implements Serializable {
     private String name;
     private String cpf;
     private String password;
-    private float balance;
     private int online = 0;
 
     public User() {}
@@ -46,10 +45,6 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public void setBalance(float balance) {
-        this.balance = balance;
-    }
-
     public void setOnline(int online) {
         this.online = online;
     }
@@ -66,15 +61,22 @@ public class User implements Serializable {
         return password;
     }
 
-    public float getBalance() {
-        return balance;
-    }
-
     public int getOnline() {
         return online;
     }
 
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", password='" + password + '\'' +
+                ", online=" + online +
+                '}';
     }
 }

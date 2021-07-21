@@ -1,5 +1,7 @@
 package server.models;
 
+import core.Response;
+import core.ResponseCode;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
@@ -10,6 +12,7 @@ import core.models.user.User;
 import core.RequestCode;
 import core.Request;
 import org.jgroups.blocks.atomic.Counter;
+import org.jgroups.util.RspList;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
     private final JChannel channel;
@@ -27,38 +30,35 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public boolean register(String name, String cpf, String password) throws RemoteException {
+    public Response register(String name, String cpf, String password) throws RemoteException {
         try {
             // TODO: Add password hash
             long id = counter.incrementAndGet();
             User userRegister = new User(name, cpf, password, id);
 
-            dispatcher.sendRequestMulticast(
+            RspList<Response> results = dispatcher.sendRequestMulticast(
                 new Request(RequestCode.REGISTER_USER, userRegister),
                 ResponseMode.GET_FIRST);
 
-            return true;
+            return results.getFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return false;
+        return null;
     }
 
     @Override
-    public User login(String cpf, String password) throws RemoteException {
+    public Response login(String cpf, String password) throws RemoteException {
         try {
             User userParams = new User();
             userParams.setCpf(cpf);
             userParams.setPassword(password);
 
-            Object user = dispatcher.sendRequestUnicast(this.channel.getAddress(),
-                    new Request(RequestCode.LOGIN_USER, userParams),
+            RspList<Response> results = dispatcher.sendRequestMulticast(new Request(RequestCode.LOGIN_USER, userParams),
                     ResponseMode.GET_FIRST);
 
-            if (user != null) {
-                return (User) user;
-            }
+            return results.getFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }

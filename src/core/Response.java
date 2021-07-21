@@ -3,8 +3,8 @@ package core;
 import java.io.Serializable;
 
 public class Response implements Serializable {
-    private ResponseCode responseCode;
-    private Object body;
+    private final ResponseCode responseCode;
+    private final Object body;
 
     public Response(ResponseCode responseCode, Object body) {
         this.responseCode = responseCode;
@@ -17,5 +17,13 @@ public class Response implements Serializable {
 
     public ResponseCode getRequestCode() {
         return responseCode;
+    }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+                "responseCode=" + responseCode +
+                ", body=" + body +
+                '}';
     }
 }

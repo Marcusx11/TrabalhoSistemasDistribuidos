@@ -1,29 +1,30 @@
 package interfaces;
 
+import core.Response;
 import org.jgroups.Address;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.util.RspList;
 import java.util.Collection;
 
 public interface RequestDispatcherInterface {
-    RspList sendRequestMulticast(
+    RspList<Response> sendRequestMulticast(
             Object value,
             ResponseMode responseMode
     ) throws Exception;
 
-     RspList sendRequestMulticast(
+     RspList<Response> sendRequestMulticast(
             Object value,
             ResponseMode responseMode,
             Address removeAdd
     ) throws Exception;
 
-     RspList sendRequestAnycast(
+     RspList<Response> sendRequestAnycast(
             Collection<Address> cluster,
             Object value,
             ResponseMode responseMode
     ) throws Exception;
 
-     RspList sendRequestAnycast(
+     RspList<Response> sendRequestAnycast(
             Collection<Address> cluster,
             Object value,
             ResponseMode responseMode,
