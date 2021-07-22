@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Scanner;
 import core.Constants;
 import core.models.user.User;
@@ -63,10 +64,11 @@ public class Main {
         System.out.println("Ola, seja bem vindo(a) " + authUser.getName());
         System.out.println("Ações");
         System.out.println("[1] - Verificar saldo");
-        System.out.println("[2] - Transferencia");
+        System.out.println("[2] - Transferência");
         System.out.println("[3] - Verificar extrato");
         System.out.println("[4] - Verificar montante do banco");
-        System.out.println("[5] - Sair");
+        System.out.println("[5] - Listar todos os usuários cadastrados");
+        System.out.println("[6] - Sair");
         System.out.print("> ");
 
         String option = input.nextLine();
@@ -77,14 +79,18 @@ public class Main {
             case "2":
                 viewTransfer();
                 break;
+
             case "5":
+                viewListAllUsers();
+
+            case "6":
                 logout();
                 break;
             default:
                 System.out.println("invalid option");
         }
-
     }
+
 
     // TODO implementar depois da classe tranf. ser feita
     public static void viewBalance() throws RemoteException {
@@ -100,7 +106,7 @@ public class Main {
     }
 
     public static void viewTransfer() throws RemoteException {
-        System.out.println("**** Transferencia ****");
+        System.out.println("**** Transferência ****");
         System.out.print("Conta destino: ");
         long toId  = input.nextInt();
         System.out.print("Valor: ");
@@ -139,6 +145,25 @@ public class Main {
 
         if (response.getRequestCode() == ResponseCode.OK) {
             authUser = (User) response.getBody();
+            viewDashboardMenu();
+        } else {
+            System.out.println(response.getBody());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void viewListAllUsers() throws RemoteException {
+        Response response = bank.listAllUsers();
+
+        if (response.getRequestCode() == ResponseCode.OK) {
+            List<User> users;
+            users = (List<User>) response.getBody();
+
+            System.out.println("| ID |     CPF     | NOME |" ));
+            for (User user : users) {
+                System.out.println(user.getId() + " | " + user.getCpf() + " | " + user.getName());
+            }
+
             viewDashboardMenu();
         } else {
             System.out.println(response.getBody());
