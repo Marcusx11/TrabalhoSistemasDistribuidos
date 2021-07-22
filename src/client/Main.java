@@ -79,10 +79,9 @@ public class Main {
             case "2":
                 viewTransfer();
                 break;
-
             case "5":
                 viewListAllUsers();
-
+                break;
             case "6":
                 logout();
                 break;
@@ -159,12 +158,10 @@ public class Main {
             List<User> users;
             users = (List<User>) response.getBody();
 
-            System.out.println("| ID |     CPF     | NOME |" ));
+            System.out.println("| ID |     CPF     | NOME |" );
             for (User user : users) {
                 System.out.println(user.getId() + " | " + user.getCpf() + " | " + user.getName());
             }
-
-            viewDashboardMenu();
         } else {
             System.out.println(response.getBody());
         }
