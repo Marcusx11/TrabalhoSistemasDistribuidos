@@ -25,6 +25,9 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     private Counter userCounter;
     private Counter transferCounter;
 
+    private Authentication authentication;
+    private Operation operation;
+
     public void start() {
         try {
             channel = new JChannel("src/configs.xml");
@@ -36,6 +39,9 @@ public class Main extends ReceiverAdapter implements RequestHandler {
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
 
+            authentication = new Authentication();
+            operation = new Operation();
+
             Database.bootstrap(channel.getAddress().toString());
 
             while (true) {
@@ -45,6 +51,7 @@ public class Main extends ReceiverAdapter implements RequestHandler {
             exception.printStackTrace();
         }
     }
+
 
     private void initCounters() {
         CounterService counterService = new CounterService(channel);
@@ -91,85 +98,22 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
-                    return this.register((User) request.getBody());
+                    return authentication.register((User) request.getBody());
                 case LOGIN_USER:
-                    return this.login((User) request.getBody());
+                    return authentication.login((User) request.getBody());
                 case GET_BALANCE:
-                    return this.balance((User) request.getBody());
+                    return operation.balance((User) request.getBody());
+                case LIST_ALL_USERS:
+                    return operation.listAllUsers();
                 case TRANSFER:
-                    return this.transfer((Transfer) request.getBody());
+                    return operation.transfer((Transfer) request.getBody());
             }
         }
 
         return false;
     }
 
-    private Response balance(User user) {
-        try {
-            TransferDAO transferDAO = new TransferDAO();
 
-            List<Transfer> transfersOut = transferDAO.selectBy("from_user_id", String.valueOf(user.getId()));
-            List<Transfer> transfersIn = transferDAO.selectBy("to_user_id", String.valueOf(user.getId()));
-
-            float output = 0;
-            for (Transfer transfer:transfersOut) {
-                output += transfer.getAmount();
-            }
-
-            float input = 0;
-            for (Transfer transfer:transfersIn) {
-                input += transfer.getAmount();
-            }
-
-            return new Response(ResponseCode.OK, input - output);
-        } catch (Exception e) {
-            return new Response(ResponseCode.ERROR, "There was a problem. Please try again.");
-        }
-    }
-
-    private Response register(User user) {
-        try {
-            UserDAO userDAO = new UserDAO();
-            TransferDAO transferDAO = new TransferDAO();
-
-            userDAO.create(user);
-            transferDAO.create(user.getTransfers().get(0));
-
-            return new Response(ResponseCode.OK, "The user was successfully created.");
-        } catch (Exception e) {
-            return new Response(ResponseCode.ERROR, "There was a problem creating this user. Please try again.");
-        }
-    }
-
-    private Response transfer(Transfer transfer) {
-        try {
-            TransferDAO transferDAO = new TransferDAO();
-            transferDAO.create(transfer);
-
-            return new Response(ResponseCode.OK, "The transfer was successfully created.");
-        } catch (Exception e) {
-            return new Response(ResponseCode.ERROR, "There was a problem creating this transfer. Please try again.");
-        }
-    }
-
-    private Response login(User userParams) {
-        try {
-            UserDAO userDAO = new UserDAO();
-            User user = userDAO.findBy("cpf", userParams.getCpf());
-
-            if (user != null) {
-                if (userParams.getPassword().equals(user.getPassword())) {
-                    user.setOnline(1);
-                    userDAO.update(user);
-                    return new Response(ResponseCode.OK, user);
-                }
-            }
-
-            return new Response(ResponseCode.ERROR, "Invalid password or CPF. Please try again.");
-        } catch (Exception e) {
-            return new Response(ResponseCode.ERROR, "There was a problem with login. Please try again.");
-        }
-    }
 
     public static void main(String[] args) {
         new Main().start();
