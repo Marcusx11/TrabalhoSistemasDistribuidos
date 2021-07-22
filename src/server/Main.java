@@ -24,7 +24,6 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     private RequestDispatcher dispatcher;
     private Counter userCounter;
     private Counter transferCounter;
-
     private Authentication authentication;
     private Operation operation;
 
@@ -107,13 +106,15 @@ public class Main extends ReceiverAdapter implements RequestHandler {
                     return operation.listAllUsers();
                 case TRANSFER:
                     return operation.transfer((Transfer) request.getBody());
+                case STATEMENT_OF_ACCOUNT:
+                    return operation.statementOfAccount((User) request.getBody());
+                case BANK_AMOUNT:
+                    return operation.bankAmount();
             }
         }
 
         return false;
     }
-
-
 
     public static void main(String[] args) {
         new Main().start();

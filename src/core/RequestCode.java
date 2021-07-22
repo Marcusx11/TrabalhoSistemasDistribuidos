@@ -5,5 +5,7 @@ public enum RequestCode {
     LOGIN_USER,
     GET_BALANCE,
     LIST_ALL_USERS,
-    TRANSFER
+    TRANSFER,
+    STATEMENT_OF_ACCOUNT,
+    BANK_AMOUNT
 }

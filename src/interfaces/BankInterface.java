@@ -11,4 +11,6 @@ public interface BankInterface extends Remote {
     Response balance(User user) throws RemoteException;
     Response transfer(long fromId, long toId, float amount) throws RemoteException;
     Response listAllUsers() throws RemoteException;
+    Response statementOfAccount(User user) throws RemoteException;
+    Response bankAmount() throws RemoteException;
 }

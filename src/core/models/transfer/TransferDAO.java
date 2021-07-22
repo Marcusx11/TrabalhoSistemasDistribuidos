@@ -83,6 +83,30 @@ public class TransferDAO implements DAO<Transfer> {
         }
     }
 
+    public List<Transfer> fromUser(String userId) {
+        try (Connection connection = ConnectionFactory.getConnection()) {
+            Statement statement = connection.createStatement();
+
+            String sql = "SELECT * FROM transfers WHERE from_user_id = " + userId + " OR to_user_id = " + userId;
+            ResultSet results = statement.executeQuery(sql);
+
+            List<Transfer> transfers = new ArrayList<Transfer>();
+            while (results.next()) {
+                Transfer transfer = new Transfer();
+                transfer.setId(results.getLong("id"));
+                transfer.setToUserId(results.getLong("to_user_id"));
+                transfer.setFromUserId(results.getLong("from_user_id"));
+                transfer.setAmount(results.getDouble("amount"));
+
+                transfers.add(transfer);
+            }
+
+            return transfers;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public List<Transfer> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {

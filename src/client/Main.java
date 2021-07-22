@@ -1,5 +1,6 @@
 package client;
 
+import core.models.transfer.Transfer;
 import interfaces.BankInterface;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -24,23 +25,23 @@ public class Main {
             bank = (BankInterface) Naming.lookup(Constants.RMI_URL);
             input = new Scanner(System.in);
 
-            switchBetweenMenus();
+            viewInitialMenu();
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
     }
 
-    public static void switchBetweenMenus() throws RemoteException {
+    public static void viewInitialMenu() throws RemoteException {
         while (true) {
             if (authUser == null) {
-                viewInitialMenu();
+                viewAuthMenu();
             } else {
                 viewDashboardMenu();
             }
         }
     }
 
-    public static void viewInitialMenu() throws RemoteException{
+    public static void viewAuthMenu() throws RemoteException{
         System.out.println("**** E-Banking ****");
         System.out.println("[1] - Login");
         System.out.println("[2] - Register");
@@ -79,6 +80,12 @@ public class Main {
             case "2":
                 viewTransfer();
                 break;
+            case "3":
+                viewStatementOfAccount();
+                break;
+            case "4":
+                viewBankAmount();
+                break;
             case "5":
                 viewListAllUsers();
                 break;
@@ -90,8 +97,18 @@ public class Main {
         }
     }
 
+    public static void viewBankAmount() throws RemoteException {
+        System.out.println("**** Montante do banco ****");
 
-    // TODO implementar depois da classe tranf. ser feita
+        Response response = bank.bankAmount();
+
+        if (response.getRequestCode() == ResponseCode.OK) {
+            System.out.println("Total: R$ " + response.getBody());
+        } else {
+            System.out.println(response.getBody());
+        }
+    }
+
     public static void viewBalance() throws RemoteException {
         System.out.println("**** Saldo ****");
 
@@ -116,8 +133,30 @@ public class Main {
         System.out.println(response.getBody());
     }
 
-    public static void viewVerificarExtrato() throws RemoteException {}
-    public static void viewVerificarMontanteBanco() throws RemoteException {}
+    public static void viewStatementOfAccount() throws RemoteException {
+        System.out.println("**** Extrato ****");
+        Response response = bank.statementOfAccount(authUser);
+
+        if (response.getRequestCode() == ResponseCode.OK) {
+            List<Transfer> transfers = (List<Transfer>) response.getBody();
+
+            for (Transfer transfer : transfers) {
+                if (transfer.getFromUserId() == 0) {
+                    System.out.println("Deposito de R$ " + transfer.getAmount());
+                } else if (transfer.getFromUserId() == authUser.getId()) {
+                    System.out.println("Transferencia de R$ " + transfer.getAmount() + " para a conta " +
+                            transfer.getToUserId());
+                } else {
+                    System.out.println("Transferencia recebida da conta " + transfer.getFromUserId() +
+                            " no valor de R$ " + transfer.getAmount());
+                }
+
+                System.out.println("---------------------------------------------------");
+            }
+        } else {
+            System.out.println(response.getBody());
+        }
+    }
 
     public static void viewRegister() throws RemoteException {
         System.out.println("**** Registro ****");
@@ -150,13 +189,11 @@ public class Main {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static void viewListAllUsers() throws RemoteException {
         Response response = bank.listAllUsers();
 
         if (response.getRequestCode() == ResponseCode.OK) {
-            List<User> users;
-            users = (List<User>) response.getBody();
+            List<User> users = (List<User>) response.getBody();
 
             System.out.println("| ID |     CPF     | NOME |" );
             for (User user : users) {
