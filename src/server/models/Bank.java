@@ -104,4 +104,16 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
         return null;
     }
-}
+
+    @Override
+    public Response listAllUsers() throws RemoteException {
+        try {
+            Request request =  new Request(RequestCode.LIST_ALL_USERS,null);
+            return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+}   }
+
