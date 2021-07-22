@@ -16,23 +16,27 @@ import org.jgroups.util.RspList;
 public class Bank extends UnicastRemoteObject implements BankInterface {
     private final JChannel channel;
     private final RequestDispatcherInterface dispatcher;
-    private final Counter counter;
+    private final Counter userCounter;
+    private final Counter transferCounter;
 
     public Bank(
             RequestDispatcherInterface dispatcher,
             JChannel channel,
-            Counter counter) throws RemoteException {
+            Counter userCounter,
+            Counter transferCounter) throws RemoteException {
         super();
+
         this.dispatcher = dispatcher;
         this.channel = channel;
-        this.counter = counter;
+        this.userCounter = userCounter;
+        this.transferCounter = transferCounter;
     }
 
     @Override
     public Response register(String name, String cpf, String password) throws RemoteException {
         try {
             // TODO: Add password hash
-            long id = counter.incrementAndGet();
+            long id = userCounter.incrementAndGet();
             User userRegister = new User(name, cpf, password, id);
 
             RspList<Response> results = dispatcher.sendRequestMulticast(
@@ -55,8 +59,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             userParams.setPassword(password);
             userParams.setOnline(1);
 
-            RspList<Response> results = dispatcher.sendRequestMulticast(new Request(RequestCode.LOGIN_USER, userParams),
-                    ResponseMode.GET_FIRST);
+            Request request =  new Request(RequestCode.LOGIN_USER, userParams);
+            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_FIRST);
 
             return results.getFirst();
         } catch (Exception e) {

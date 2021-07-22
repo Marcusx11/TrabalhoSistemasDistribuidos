@@ -4,8 +4,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import core.database.ConnectionFactory;
+import interfaces.DAO;
 
-public class UserDAO {
+public class UserDAO implements DAO<User> {
+    @Override
     public void create(User user) {
         try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "INSERT INTO users (name, cpf, password, online, id) VALUES (?, ?, ?, ?, ?)";
@@ -24,6 +26,7 @@ public class UserDAO {
         }
     }
 
+    @Override
     public void update(User user) {
         try (Connection connection = ConnectionFactory.getConnection()) {
             String sql = "UPDATE users SET " +
@@ -46,10 +49,13 @@ public class UserDAO {
         }
     }
 
+    @Override
     public User findBy(String field, String value) {
         try (Connection connection = ConnectionFactory.getConnection()) {
             Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery("SELECT * FROM users WHERE " + field + " = " + value + " LIMIT 1");
+
+            String sql = "SELECT * FROM users WHERE " + field + " = " + value + " LIMIT 1";
+            ResultSet results = statement.executeQuery(sql);
 
             User user = null;
             while (results.next()) {
@@ -67,10 +73,13 @@ public class UserDAO {
         }
     }
 
+    @Override
     public List<User> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {
             Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery("SELECT * FROM users");
+
+            String sql = "SELECT * FROM users";
+            ResultSet results = statement.executeQuery(sql);
 
             List<User> users = new ArrayList<User>();
             while (results.next()) {

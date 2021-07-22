@@ -1,6 +1,10 @@
 package server;
 
 import core.*;
+import core.database.Database;
+import core.models.transfer.Transfer;
+import core.models.user.User;
+import core.models.user.UserDAO;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.atomic.Counter;
@@ -10,15 +14,13 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import core.models.user.User;
-import core.database.Database;
-import core.models.user.UserDAO;
 import server.models.Bank;
 
 public class Main extends ReceiverAdapter implements RequestHandler {
     private JChannel channel;
     private RequestDispatcher dispatcher;
-    private Counter counter;
+    private Counter userCounter;
+    private Counter transferCounter;
 
     public void start() {
         try {
@@ -27,7 +29,8 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
             CounterService counterService = new CounterService(channel);
             channel.connect("counter-cluster");
-            counter = counterService.getOrCreateCounter("id", 1);
+
+            this.initCounters();
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
@@ -42,13 +45,22 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         }
     }
 
+    private void initCounters() {
+        CounterService counterService = new CounterService(channel);
+
+        userCounter = counterService.getOrCreateCounter("user_id", 1);
+        transferCounter = counterService.getOrCreateCounter("transfer_id", 1);
+    }
+
     private void createRmiInstance() {
         try {
             LocateRegistry.createRegistry(1099);
         } catch (RemoteException ignored) {}
 
         try {
-            Bank bank = new Bank(dispatcher, channel, counter);
+            if (userCounter == null ||transferCounter == null) this.initCounters();
+
+            Bank bank = new Bank(dispatcher, channel, userCounter, transferCounter);
             Naming.rebind(Constants.RMI_NAME, bank);
         } catch (RemoteException | MalformedURLException e) {
             e.printStackTrace();
@@ -91,6 +103,9 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         try {
             UserDAO userDAO = new UserDAO();
             userDAO.create(user);
+
+            Transfer transfer = new Transfer();
+            transfer.setToUserId(user.getId());
 
             return new Response(ResponseCode.OK, "The user was successfully created.");
         } catch (Exception e) {
