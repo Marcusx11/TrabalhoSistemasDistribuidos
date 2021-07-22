@@ -44,7 +44,6 @@ public class TransferDAO implements DAO<Transfer> {
             String sql = "SELECT * FROM transfers WHERE " + field + " = " + value + " LIMIT 1";
             ResultSet results = statement.executeQuery(sql);
 
-
             Transfer transfer = null;
             while (results.next()) {
                 transfer = new Transfer();

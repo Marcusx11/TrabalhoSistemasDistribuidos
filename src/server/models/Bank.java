@@ -1,6 +1,8 @@
 package server.models;
 
+import core.Constants;
 import core.Response;
+import core.models.transfer.Transfer;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
@@ -36,8 +38,12 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public Response register(String name, String cpf, String password) throws RemoteException {
         try {
             // TODO: Add password hash
-            long id = userCounter.incrementAndGet();
-            User userRegister = new User(name, cpf, password, id);
+            long userId = userCounter.incrementAndGet();
+            long transferId = transferCounter.incrementAndGet();
+
+            User userRegister = new User(name, cpf, password, userId);
+
+            userRegister.addTransfer(new Transfer(transferId, Constants.INITIAL_BALANCE_VALUE, userId));
 
             RspList<Response> results = dispatcher.sendRequestMulticast(
                 new Request(RequestCode.REGISTER_USER, userRegister),

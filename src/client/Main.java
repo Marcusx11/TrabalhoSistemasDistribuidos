@@ -40,7 +40,7 @@ public class Main {
     }
 
     public static void viewInitialMenu() throws RemoteException{
-        System.out.println("**** Menu ****");
+        System.out.println("**** E-Banking ****");
         System.out.println("[1] - Login");
         System.out.println("[2] - Register");
         System.out.print("> ");
@@ -66,10 +66,13 @@ public class Main {
         System.out.println("[2] - Transferencia");
         System.out.println("[3] - Verificar extrato");
         System.out.println("[4] - Verificar montante do banco");
+        System.out.println("[5] - Sair");
         System.out.print("> ");
 
         String option = input.nextLine();
         switch (option) {
+            case "5":
+                logout();
             default:
                 System.out.println("invalid option");
         }
@@ -111,5 +114,9 @@ public class Main {
         } else {
             System.out.println(response.getBody());
         }
+    }
+
+    public static void logout() {
+        authUser = null;
     }
 }

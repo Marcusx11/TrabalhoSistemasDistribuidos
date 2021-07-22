@@ -1,6 +1,11 @@
 package core.models.user;
 
+import core.models.transfer.Transfer;
+import core.models.transfer.TransferDAO;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class User implements Serializable {
     private long id;
@@ -8,6 +13,7 @@ public class User implements Serializable {
     private String cpf;
     private String password;
     private int online = 0;
+    private List<Transfer> transfers = new ArrayList<Transfer>();
 
     public User() {}
 
@@ -67,6 +73,14 @@ public class User implements Serializable {
 
     public long getId() {
         return id;
+    }
+
+    public void addTransfer(Transfer transfer) {
+        transfers.add(transfer);
+    }
+
+    public List<Transfer> getTransfers() {
+        return transfers;
     }
 
     @Override

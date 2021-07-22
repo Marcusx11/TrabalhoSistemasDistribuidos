@@ -3,6 +3,7 @@ package server;
 import core.*;
 import core.database.Database;
 import core.models.transfer.Transfer;
+import core.models.transfer.TransferDAO;
 import core.models.user.User;
 import core.models.user.UserDAO;
 import org.jgroups.*;
@@ -30,8 +31,6 @@ public class Main extends ReceiverAdapter implements RequestHandler {
             CounterService counterService = new CounterService(channel);
             channel.connect("counter-cluster");
 
-            this.initCounters();
-
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
 
@@ -58,7 +57,7 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         } catch (RemoteException ignored) {}
 
         try {
-            if (userCounter == null ||transferCounter == null) this.initCounters();
+            if (userCounter == null || transferCounter == null) this.initCounters();
 
             Bank bank = new Bank(dispatcher, channel, userCounter, transferCounter);
             Naming.rebind(Constants.RMI_NAME, bank);
@@ -104,8 +103,9 @@ public class Main extends ReceiverAdapter implements RequestHandler {
             UserDAO userDAO = new UserDAO();
             userDAO.create(user);
 
-            Transfer transfer = new Transfer();
-            transfer.setToUserId(user.getId());
+            TransferDAO transferDAO = new TransferDAO();
+
+            transferDAO.create(user.getTransfers().get(0));
 
             return new Response(ResponseCode.OK, "The user was successfully created.");
         } catch (Exception e) {
