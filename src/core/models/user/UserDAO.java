@@ -74,6 +74,11 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
+    public List<User> selectBy(String field, String value) {
+        return null;
+    }
+
+    @Override
     public List<User> selectAll() {
         try (Connection connection = ConnectionFactory.getConnection()) {
             Statement statement = connection.createStatement();

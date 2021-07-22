@@ -31,7 +31,7 @@ public interface RequestDispatcherInterface {
             Address remove
     ) throws Exception;
 
-    Object sendRequestUnicast(
+    Response sendRequestUnicast(
             Address receiver,
             Object value,
             ResponseMode responseMode

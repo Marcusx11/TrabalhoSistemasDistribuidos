@@ -15,6 +15,8 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.util.List;
+
 import server.models.Bank;
 
 public class Main extends ReceiverAdapter implements RequestHandler {
@@ -92,19 +94,45 @@ public class Main extends ReceiverAdapter implements RequestHandler {
                     return this.register((User) request.getBody());
                 case LOGIN_USER:
                     return this.login((User) request.getBody());
+                case GET_BALANCE:
+                    return this.balance((User) request.getBody());
+                case TRANSFER:
+                    return this.transfer((Transfer) request.getBody());
             }
         }
 
         return false;
     }
 
+    private Response balance(User user) {
+        try {
+            TransferDAO transferDAO = new TransferDAO();
+
+            List<Transfer> transfersOut = transferDAO.selectBy("from_user_id", String.valueOf(user.getId()));
+            List<Transfer> transfersIn = transferDAO.selectBy("to_user_id", String.valueOf(user.getId()));
+
+            float output = 0;
+            for (Transfer transfer:transfersOut) {
+                output += transfer.getAmount();
+            }
+
+            float input = 0;
+            for (Transfer transfer:transfersIn) {
+                input += transfer.getAmount();
+            }
+
+            return new Response(ResponseCode.OK, input - output);
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "There was a problem. Please try again.");
+        }
+    }
+
     private Response register(User user) {
         try {
             UserDAO userDAO = new UserDAO();
-            userDAO.create(user);
-
             TransferDAO transferDAO = new TransferDAO();
 
+            userDAO.create(user);
             transferDAO.create(user.getTransfers().get(0));
 
             return new Response(ResponseCode.OK, "The user was successfully created.");
@@ -113,10 +141,20 @@ public class Main extends ReceiverAdapter implements RequestHandler {
         }
     }
 
-    private Response login(User userParams) {
-        UserDAO userDAO = new UserDAO();
-
+    private Response transfer(Transfer transfer) {
         try {
+            TransferDAO transferDAO = new TransferDAO();
+            transferDAO.create(transfer);
+
+            return new Response(ResponseCode.OK, "The transfer was successfully created.");
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "There was a problem creating this transfer. Please try again.");
+        }
+    }
+
+    private Response login(User userParams) {
+        try {
+            UserDAO userDAO = new UserDAO();
             User user = userDAO.findBy("cpf", userParams.getCpf());
 
             if (user != null) {

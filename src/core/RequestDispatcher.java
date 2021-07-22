@@ -85,7 +85,7 @@ public class RequestDispatcher implements RequestDispatcherInterface
         return this.dispatcher.castMessage(cluster, message, options);
     }
 
-    public Object sendRequestUnicast(
+    public Response sendRequestUnicast(
             Address receiver,
             Object value,
             ResponseMode responseMode

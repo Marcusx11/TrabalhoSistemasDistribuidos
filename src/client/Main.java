@@ -58,7 +58,7 @@ public class Main {
         }
     }
 
-    public static void viewDashboardMenu() {
+    public static void viewDashboardMenu() throws RemoteException {
         System.out.println("**** Dashboard ****");
         System.out.println("Ola, seja bem vindo(a) " + authUser.getName());
         System.out.println("Ações");
@@ -71,8 +71,15 @@ public class Main {
 
         String option = input.nextLine();
         switch (option) {
+            case "1":
+                viewBalance();
+                break;
+            case "2":
+                viewTransfer();
+                break;
             case "5":
                 logout();
+                break;
             default:
                 System.out.println("invalid option");
         }
@@ -80,18 +87,40 @@ public class Main {
     }
 
     // TODO implementar depois da classe tranf. ser feita
-    public static void viewSaldo() throws RemoteException {}
-    public static void viewTransferencia() throws RemoteException {}
+    public static void viewBalance() throws RemoteException {
+        System.out.println("**** Saldo ****");
+
+        Response response = bank.balance(authUser);
+
+        if (response.getRequestCode() == ResponseCode.OK) {
+            System.out.println("Total: R$ " + response.getBody());
+        } else {
+            System.out.println(response.getBody());
+        }
+    }
+
+    public static void viewTransfer() throws RemoteException {
+        System.out.println("**** Transferencia ****");
+        System.out.print("Conta destino: ");
+        long toId  = input.nextInt();
+        System.out.print("Valor: ");
+        float amount = input.nextFloat();
+
+        Response response= bank.transfer(authUser.getId(), toId, amount);
+
+        System.out.println(response.getBody());
+    }
+
     public static void viewVerificarExtrato() throws RemoteException {}
     public static void viewVerificarMontanteBanco() throws RemoteException {}
 
     public static void viewRegister() throws RemoteException {
-        System.out.println("**** Register ****");
+        System.out.println("**** Registro ****");
         System.out.print("Nome: ");
         String name = input.nextLine();
         System.out.print("CPF: ");
         String cpf = input.nextLine();
-        System.out.print("Password: ");
+        System.out.print("Senha: ");
         String password = input.nextLine();
 
         Response response = bank.register(name, cpf, password);
@@ -100,10 +129,10 @@ public class Main {
     }
 
     public static void viewLogin() throws RemoteException {
-        System.out.println("**** Login ****");
+        System.out.println("**** Entrar ****");
         System.out.print("CPF: ");
         String cpf = input.nextLine();
-        System.out.print("Password: ");
+        System.out.print("Senha: ");
         String password = input.nextLine();
 
         Response response = bank.login(cpf, password);

@@ -1,13 +1,17 @@
 package interfaces;
 
+import core.models.transfer.Transfer;
+
 import java.util.List;
 
 public interface DAO<T> {
-    public void create(T model);
+    void create(T model);
 
-    public void update(T model);
+    void update(T model);
 
     T findBy(String field, String value);
+
+    List<T> selectBy(String field, String value);
 
     List<T> selectAll();
 }

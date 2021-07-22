@@ -40,14 +40,13 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             // TODO: Add password hash
             long userId = userCounter.incrementAndGet();
             long transferId = transferCounter.incrementAndGet();
-
+            
             User userRegister = new User(name, cpf, password, userId);
 
             userRegister.addTransfer(new Transfer(transferId, Constants.INITIAL_BALANCE_VALUE, userId));
 
-            RspList<Response> results = dispatcher.sendRequestMulticast(
-                new Request(RequestCode.REGISTER_USER, userRegister),
-                ResponseMode.GET_FIRST);
+            Request request = new Request(RequestCode.REGISTER_USER, userRegister);
+            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_FIRST);
 
             return results.getFirst();
         } catch (Exception e) {
@@ -78,7 +77,31 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     @Override
     public Response balance(User user) throws RemoteException {
-        return null;
+        try {
+            Request request =  new Request(RequestCode.GET_BALANCE, user);
+            return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        return null;
+    }
+
+    @Override
+    public Response transfer(long fromId, long toId, float amount) throws RemoteException {
+        try {
+            long transferId = transferCounter.incrementAndGet();
+
+            Transfer transfer = new Transfer(transferId, amount, toId, fromId);
+
+            Request request =  new Request(RequestCode.TRANSFER, transfer);
+            RspList<Response> response = dispatcher.sendRequestMulticast(request, ResponseMode.GET_FIRST);
+
+            return response.getFirst();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
