@@ -25,4 +25,5 @@
     <FRAG2/>
     <pbcast.STATE_TRANSFER />
     <COUNTER />
+    <CENTRAL_LOCK />
 </config>

@@ -10,22 +10,29 @@ import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.atomic.Counter;
 import org.jgroups.blocks.atomic.CounterService;
+import org.jgroups.blocks.locking.LockNotification;
+import org.jgroups.blocks.locking.LockService;
+import org.jgroups.util.Owner;
 import org.jgroups.util.Util;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import server.models.Bank;
 
-public class Main extends ReceiverAdapter implements RequestHandler {
+public class Main extends ReceiverAdapter implements RequestHandler, LockNotification {
     private JChannel channel;
     private RequestDispatcher dispatcher;
     private Counter userCounter;
     private Counter transferCounter;
     private Authentication authentication;
     private Operation operation;
+    private LockService lockService;
+    private Lock lock;
 
     public void start() {
         try {
@@ -34,6 +41,10 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
             CounterService counterService = new CounterService(channel);
             channel.connect("counter-cluster");
+
+            lockService = new LockService(channel);
+            lockService.addLockListener(this);
+            lock = lockService.getLock("my-lock");
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
@@ -91,9 +102,10 @@ public class Main extends ReceiverAdapter implements RequestHandler {
     }
 
     @Override
-    public Object handle(Message message) {
+    public Object handle(Message message) throws InterruptedException {
         if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
+            Response response = null;
 
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
@@ -101,15 +113,42 @@ public class Main extends ReceiverAdapter implements RequestHandler {
                 case LOGIN_USER:
                     return authentication.login((User) request.getBody());
                 case GET_BALANCE:
-                    return operation.balance((User) request.getBody());
+                    if (lock.tryLock(2000, TimeUnit.MILLISECONDS)) {
+                        try {
+                            response = operation.balance((User) request.getBody());
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                    return response;
                 case LIST_ALL_USERS:
-                    return operation.listAllUsers();
+                    lock.lock();
+                    try {
+                        return operation.listAllUsers();
+                    } finally {
+                        lock.unlock();
+                    }
                 case TRANSFER:
-                    return operation.transfer((Transfer) request.getBody());
+                    lock.lock();
+                    try {
+                        return operation.transfer((Transfer) request.getBody());
+                    } finally {
+                        lock.unlock();
+                    }
                 case STATEMENT_OF_ACCOUNT:
-                    return operation.statementOfAccount((User) request.getBody());
+                    lock.lock();
+                    try {
+                        return operation.statementOfAccount((User) request.getBody());
+                    } finally {
+                        lock.unlock();
+                    }
                 case BANK_AMOUNT:
-                    return operation.bankAmount();
+                    lock.lock();
+                    try {
+                        return operation.bankAmount();
+                    } finally {
+                        lock.unlock();
+                    }
             }
         }
 
@@ -118,5 +157,35 @@ public class Main extends ReceiverAdapter implements RequestHandler {
 
     public static void main(String[] args) {
         new Main().start();
+    }
+
+    @Override
+    public void lockCreated(String s) {
+        System.out.println("Lock creada: " + s);
+    }
+
+    @Override
+    public void lockDeleted(String s) {
+        System.out.println("Lock deletada: " + s);
+    }
+
+    @Override
+    public void locked(String s, Owner owner) {
+        System.out.println("Recurso lockado por " + owner.toString());
+    }
+
+    @Override
+    public void unlocked(String s, Owner owner) {
+        System.out.println("Recurso deslockado por " + owner.toString());
+    }
+
+    @Override
+    public void awaiting(String s, Owner owner) {
+        System.out.println(owner.toString() + " está esperando para liberar a trava...");
+    }
+
+    @Override
+    public void awaited(String s, Owner owner) {
+        System.out.println(owner.toString() + " esperou para liberar a trava.");
     }
 }
