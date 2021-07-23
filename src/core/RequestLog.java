@@ -1,15 +1,9 @@
-package core.models;
+package core;
 
-import core.Request;
-import core.RequestCode;
-import core.Response;
-import core.models.transfer.Transfer;
 import core.models.user.User;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Queue;
 
 public class RequestLog {
     private final List<User> listaUsersOnline;

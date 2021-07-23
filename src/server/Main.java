@@ -2,17 +2,14 @@ package server;
 
 import core.*;
 import core.database.Database;
-import core.models.RequestLog;
+import core.RequestLog;
 import core.models.transfer.Transfer;
-import core.models.transfer.TransferDAO;
 import core.models.user.User;
-import core.models.user.UserDAO;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.atomic.Counter;
 import org.jgroups.blocks.atomic.CounterService;
 import org.jgroups.blocks.locking.LockNotification;
-import org.jgroups.blocks.locking.LockService;
 import org.jgroups.util.Owner;
 import org.jgroups.util.Util;
 import java.net.MalformedURLException;
@@ -21,9 +18,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.locks.Lock;
 
 import server.models.Bank;
 
