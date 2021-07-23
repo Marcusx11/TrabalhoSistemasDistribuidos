@@ -2,6 +2,7 @@ package server;
 
 import core.*;
 import core.database.Database;
+import core.models.RequestLog;
 import core.models.transfer.Transfer;
 import core.models.transfer.TransferDAO;
 import core.models.user.User;
@@ -18,8 +19,10 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 
 import server.models.Bank;
@@ -31,8 +34,9 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
     private Counter transferCounter;
     private Authentication authentication;
     private Operation operation;
-    private LockService lockService;
-    private Lock lock;
+    //private LockService lockService;
+    //private Lock lock;
+    private ArrayList<RequestLog> logs;
 
     public void start() {
         try {
@@ -42,9 +46,11 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
             CounterService counterService = new CounterService(channel);
             channel.connect("counter-cluster");
 
-            lockService = new LockService(channel);
+            /*lockService = new LockService(channel);
             lockService.addLockListener(this);
-            lock = lockService.getLock("my-lock");
+            lock = lockService.getLock("my-lock");*/
+
+            logs = new ArrayList<RequestLog>();
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
@@ -102,53 +108,27 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
     }
 
     @Override
-    public Object handle(Message message) throws InterruptedException {
+    public Object handle(Message message) {
         if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
-            Response response = null;
 
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
-                    return authentication.register((User) request.getBody());
+                    Response response = authentication.register((User) request.getBody());
+                    logs.add(new RequestLog(null, request, response, LocalDateTime.now()));
+                    return response;
                 case LOGIN_USER:
                     return authentication.login((User) request.getBody());
                 case GET_BALANCE:
-                    if (lock.tryLock(2000, TimeUnit.MILLISECONDS)) {
-                        try {
-                            response = operation.balance((User) request.getBody());
-                        } finally {
-                            lock.unlock();
-                        }
-                    }
-                    return response;
+                    return operation.balance((User) request.getBody());
                 case LIST_ALL_USERS:
-                    lock.lock();
-                    try {
-                        return operation.listAllUsers();
-                    } finally {
-                        lock.unlock();
-                    }
+                    return operation.listAllUsers();
                 case TRANSFER:
-                    lock.lock();
-                    try {
-                        return operation.transfer((Transfer) request.getBody());
-                    } finally {
-                        lock.unlock();
-                    }
+                    return operation.transfer((Transfer) request.getBody());
                 case STATEMENT_OF_ACCOUNT:
-                    lock.lock();
-                    try {
-                        return operation.statementOfAccount((User) request.getBody());
-                    } finally {
-                        lock.unlock();
-                    }
+                    return operation.statementOfAccount((User) request.getBody());
                 case BANK_AMOUNT:
-                    lock.lock();
-                    try {
-                        return operation.bankAmount();
-                    } finally {
-                        lock.unlock();
-                    }
+                    return operation.bankAmount();
             }
         }
 
