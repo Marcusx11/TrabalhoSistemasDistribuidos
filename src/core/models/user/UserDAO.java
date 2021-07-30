@@ -103,4 +103,27 @@ public class UserDAO implements DAO<User> {
             throw new RuntimeException(e);
         }
     }
+
+    public User last() {
+        try (Connection connection = ConnectionFactory.getConnection()) {
+            Statement statement = connection.createStatement();
+
+            String sql = "SELECT * FROM users ORDER BY id ASC LIMIT 1";
+            ResultSet results = statement.executeQuery(sql);
+
+            User user = null;
+            while (results.next()) {
+                user = new User();
+                user.setId(results.getLong("id"));
+                user.setCpf(results.getString("cpf"));
+                user.setName(results.getString("name"));
+                user.setPassword(results.getString("password"));
+                user.setOnline(results.getInt("online"));
+            }
+
+            return user;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

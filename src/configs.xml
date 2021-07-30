@@ -11,16 +11,15 @@
 >
     <UDP/>
     <PING/>
-    <MERGE3/>
+    <FD_ALL />
     <VERIFY_SUSPECT/>
-    <BARRIER/>
     <pbcast.NAKACK2/>
     <UNICAST3/>
-    <pbcast.STABLE/>
     <pbcast.GMS/>
+    <!--Verificar o parametro-->
     <UFC/>
+    <!--Verificar o parametro-->
     <MFC/>
-    <!-- SEQUENCER could also be placed just under GMS, if messages and views need to be totally ordered -->
     <SEQUENCER />
     <FRAG2/>
     <pbcast.STATE_TRANSFER />

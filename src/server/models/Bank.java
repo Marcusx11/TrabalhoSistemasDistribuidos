@@ -1,18 +1,19 @@
 package server.models;
 
-import core.Constants;
-import core.Response;
+import core.*;
 import core.models.transfer.Transfer;
+import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ResponseMode;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.List;
 import interfaces.RequestDispatcherInterface;
 import interfaces.BankInterface;
 import core.models.user.User;
-import core.RequestCode;
-import core.Request;
 import org.jgroups.blocks.atomic.Counter;
+import org.jgroups.util.Rsp;
 import org.jgroups.util.RspList;
 
 public class Bank extends UnicastRemoteObject implements BankInterface {
@@ -44,9 +45,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             User userRegister = new User(name, cpf, password, userId);
 
             userRegister.addTransfer(new Transfer(transferId, Constants.INITIAL_BALANCE_VALUE, userId));
-
             Request request = new Request(RequestCode.REGISTER_USER, userRegister);
-            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_FIRST);
+            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_MAJORITY);
 
             return results.getFirst();
         } catch (Exception e) {
@@ -78,8 +78,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public Response balance(User user) throws RemoteException {
         try {
+            // TODO: Pegar todos os membros e sortear
             Request request =  new Request(RequestCode.GET_BALANCE, user);
-            return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
+            return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,10 +95,11 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
             Transfer transfer = new Transfer(transferId, amount, toId, fromId);
 
+            // TODO: Adicionar a trava
             Request request =  new Request(RequestCode.TRANSFER, transfer);
-            RspList<Response> response = dispatcher.sendRequestMulticast(request, ResponseMode.GET_FIRST);
+            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_MAJORITY);
 
-            return response.getFirst();
+            return results.getFirst();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -121,7 +123,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public Response statementOfAccount(User user) throws RemoteException {
         try {
             Request request =  new Request(RequestCode.STATEMENT_OF_ACCOUNT, user);
-            return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
+            return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,12 +135,17 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public Response bankAmount() throws RemoteException {
         try {
             Request request =  new Request(RequestCode.BANK_AMOUNT, null);
-            return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
+            return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return null;
+    }
+
+    private Address getRandomAddress() {
+        int index = (int)(Math.random() * channel.getView().getMembers().size());
+        return channel.getView().getMembers().get(index);
     }
 }
 

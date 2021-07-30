@@ -36,6 +36,7 @@ public class Authentication {
 
             return new Response(ResponseCode.OK, "The user was successfully created.");
         } catch (Exception e) {
+            e.printStackTrace();
             return new Response(ResponseCode.ERROR, "There was a problem creating this user. Please try again.");
         }
     }

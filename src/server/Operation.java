@@ -43,6 +43,10 @@ public class Operation {
                 return new Response(ResponseCode.ERROR, "Invalid source account.");
             }
 
+            if (this.userBalance(userFrom) < transfer.getAmount()) {
+                return new Response(ResponseCode.ERROR, "Transfer amount exceeds balance.");
+            }
+
             TransferDAO transferDAO = new TransferDAO();
             transferDAO.create(transfer);
 

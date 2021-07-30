@@ -7,5 +7,6 @@ public enum RequestCode {
     LIST_ALL_USERS,
     TRANSFER,
     STATEMENT_OF_ACCOUNT,
-    BANK_AMOUNT
+    BANK_AMOUNT,
+    REGISTER_USER_FAIL
 }

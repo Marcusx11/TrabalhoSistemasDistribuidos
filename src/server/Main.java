@@ -5,6 +5,7 @@ import core.database.Database;
 import core.RequestLog;
 import core.models.transfer.Transfer;
 import core.models.user.User;
+import core.models.user.UserDAO;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
 import org.jgroups.blocks.atomic.Counter;
@@ -28,31 +29,21 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
     private Counter transferCounter;
     private Authentication authentication;
     private Operation operation;
-    //private LockService lockService;
-    //private Lock lock;
-    private ArrayList<RequestLog> logs;
 
-    public void start() {
+    public void start(String identifier) {
         try {
+            Database.bootstrap(identifier);
+
             channel = new JChannel("src/configs.xml");
             dispatcher = new RequestDispatcher(channel, this);
 
-            CounterService counterService = new CounterService(channel);
             channel.connect("counter-cluster");
-
-            /*lockService = new LockService(channel);
-            lockService.addLockListener(this);
-            lock = lockService.getLock("my-lock");*/
-
-            logs = new ArrayList<RequestLog>();
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
 
             authentication = new Authentication();
             operation = new Operation();
-
-            Database.bootstrap(channel.getAddress().toString());
 
             while (true) {
                 Util.sleep(100);
@@ -62,11 +53,20 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
         }
     }
 
-
     private void initCounters() {
         CounterService counterService = new CounterService(channel);
 
-        userCounter = counterService.getOrCreateCounter("user_id", 1);
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.last();
+
+        long userId = 1;
+        if (user != null) {
+            userId = user.getId();
+        }
+
+        System.out.println(userId);
+
+        userCounter = counterService.getOrCreateCounter("user_id", userId);
         transferCounter = counterService.getOrCreateCounter("transfer_id", 1);
     }
 
@@ -108,9 +108,7 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
 
             switch (request.getRequestCode()) {
                 case REGISTER_USER:
-                    Response response = authentication.register((User) request.getBody());
-                    logs.add(new RequestLog(null, request, response, LocalDateTime.now()));
-                    return response;
+                    return authentication.register((User) request.getBody());
                 case LOGIN_USER:
                     return authentication.login((User) request.getBody());
                 case GET_BALANCE:
@@ -130,7 +128,12 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
     }
 
     public static void main(String[] args) {
-        new Main().start();
+        if (args.length != 1) {
+            System.out.println("error");
+            return;
+        }
+
+        new Main().start(args[0]);
     }
 
     @Override

@@ -2,9 +2,9 @@ package core.database;
 import java.sql.*;
 
 public class Database {
-    public static void bootstrap(String id) {
+    public static void bootstrap(String identifier) {
 
-        try (Connection connection = ConnectionFactory.init(id)) {
+        try (Connection connection = ConnectionFactory.init(identifier)) {
             String tableUser = "CREATE TABLE IF NOT EXISTS users (" +
                     "id INTEGER NOT NULL PRIMARY KEY, " +
                     "name VARCHAR(30) NOT NULL, " +
