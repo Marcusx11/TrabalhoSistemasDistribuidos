@@ -36,8 +36,20 @@ public class Authentication {
 
             return new Response(ResponseCode.OK, "The user was successfully created.");
         } catch (Exception e) {
-            e.printStackTrace();
             return new Response(ResponseCode.ERROR, "There was a problem creating this user. Please try again.");
+        }
+    }
+
+    public Object logout(User userAuth) {
+        try {
+            userAuth.setOnline(0);
+
+            UserDAO userDAO = new UserDAO();
+            userDAO.update(userAuth);
+
+            return new Response(ResponseCode.OK, "Epaaa! Logout");
+        } catch (Exception e) {
+            return new Response(ResponseCode.ERROR, "Epaa! Deu um erro");
         }
     }
 }

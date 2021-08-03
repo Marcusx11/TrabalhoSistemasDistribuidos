@@ -75,28 +75,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         return null;
     }
 
-    @Override
-    public Response balance(User user) throws RemoteException {
+    public Response logout(User user) throws RemoteException {
         try {
-            // TODO: Pegar todos os membros e sortear
-            Request request =  new Request(RequestCode.GET_BALANCE, user);
-            return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
-    public Response transfer(long fromId, long toId, float amount) throws RemoteException {
-        try {
-            long transferId = transferCounter.incrementAndGet();
-
-            Transfer transfer = new Transfer(transferId, amount, toId, fromId);
-
-            // TODO: Adicionar a trava
-            Request request =  new Request(RequestCode.TRANSFER, transfer);
+            Request request =  new RequestAuth(RequestCode.LOGOUT_USER, user, null);
             RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_MAJORITY);
 
             return results.getFirst();
@@ -108,9 +89,40 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public Response listAllUsers() throws RemoteException {
+    public Response balance(User user) throws RemoteException {
         try {
-            Request request =  new Request(RequestCode.LIST_ALL_USERS, null);
+            RequestAuth request =  new RequestAuth(RequestCode.GET_BALANCE, user, null);
+            return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response transfer(User from, long toId, float amount) throws RemoteException {
+        try {
+            long transferId = transferCounter.incrementAndGet();
+
+            Transfer transfer = new Transfer(transferId, amount, toId, from.getId());
+
+            // TODO: Adicionar a trava
+            Request request =  new RequestAuth(RequestCode.TRANSFER, from, transfer);
+            RspList<Response> results = dispatcher.sendRequestMulticast(request, ResponseMode.GET_MAJORITY);
+
+            return results.getFirst();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response listAllUsers(User user) throws RemoteException {
+        try {
+            RequestAuth request =  new RequestAuth(RequestCode.LIST_ALL_USERS, user, null);
             return dispatcher.sendRequestUnicast(channel.getAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,7 +134,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public Response statementOfAccount(User user) throws RemoteException {
         try {
-            Request request =  new Request(RequestCode.STATEMENT_OF_ACCOUNT, user);
+            RequestAuth request =  new RequestAuth(RequestCode.STATEMENT_OF_ACCOUNT, user, null);
             return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,9 +144,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public Response bankAmount() throws RemoteException {
+    public Response bankAmount(User user) throws RemoteException {
         try {
-            Request request =  new Request(RequestCode.BANK_AMOUNT, null);
+            RequestAuth request =  new RequestAuth(RequestCode.BANK_AMOUNT, user, null);
             return dispatcher.sendRequestUnicast(getRandomAddress(), request, ResponseMode.GET_FIRST);
         } catch (Exception e) {
             e.printStackTrace();

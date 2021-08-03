@@ -100,7 +100,7 @@ public class Main {
     public static void viewBankAmount() throws RemoteException {
         System.out.println("**** Montante do banco ****");
 
-        Response response = bank.bankAmount();
+        Response response = bank.bankAmount(authUser);
 
         if (response.getRequestCode() == ResponseCode.OK) {
             System.out.println("Total: R$ " + response.getBody());
@@ -128,7 +128,7 @@ public class Main {
         System.out.print("Valor: ");
         float amount = input.nextFloat();
 
-        Response response= bank.transfer(authUser.getId(), toId, amount);
+        Response response= bank.transfer(authUser, toId, amount);
 
         System.out.println(response.getBody());
     }
@@ -190,7 +190,7 @@ public class Main {
     }
 
     public static void viewListAllUsers() throws RemoteException {
-        Response response = bank.listAllUsers();
+        Response response = bank.listAllUsers(authUser);
 
         if (response.getRequestCode() == ResponseCode.OK) {
             List<User> users = (List<User>) response.getBody();
@@ -204,7 +204,13 @@ public class Main {
         }
     }
 
-    public static void logout() {
-        authUser = null;
+    public static void logout() throws RemoteException {
+        Response response = bank.logout(authUser);
+
+        if (response.getRequestCode() == ResponseCode.OK) {
+            authUser = null;
+        } else {
+            System.out.println(response.getBody());
+        }
     }
 }

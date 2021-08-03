@@ -8,6 +8,7 @@ import core.models.user.User;
 import core.models.user.UserDAO;
 import org.jgroups.*;
 import org.jgroups.blocks.RequestHandler;
+import org.jgroups.blocks.ResponseMode;
 import org.jgroups.blocks.atomic.Counter;
 import org.jgroups.blocks.atomic.CounterService;
 import org.jgroups.blocks.locking.LockNotification;
@@ -103,7 +104,29 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
 
     @Override
     public Object handle(Message message) {
-        if (message.getObject() instanceof Request) {
+        if (message.getObject() instanceof RequestAuth) {
+            RequestAuth request = (RequestAuth) message.getObject();
+            User userAuth = request.getUser();
+
+            if (this.isAuth(userAuth)) {
+                switch (request.getRequestCode()) {
+                    case LOGOUT_USER:
+                        return authentication.logout(userAuth);
+                    case GET_BALANCE:
+                        return operation.balance(userAuth);
+                    case LIST_ALL_USERS:
+                        return operation.listAllUsers();
+                    case TRANSFER:
+                        return operation.transfer((Transfer) request.getBody());
+                    case STATEMENT_OF_ACCOUNT:
+                        return operation.statementOfAccount(userAuth);
+                    case BANK_AMOUNT:
+                        return operation.bankAmount();
+                }
+            } else {
+                return new Response(ResponseCode.ERROR, "Unauthenticated user");
+            }
+        } else if (message.getObject() instanceof Request) {
             Request request = (Request) message.getObject();
 
             switch (request.getRequestCode()) {
@@ -111,29 +134,17 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
                     return authentication.register((User) request.getBody());
                 case LOGIN_USER:
                     return authentication.login((User) request.getBody());
-                case GET_BALANCE:
-                    return operation.balance((User) request.getBody());
-                case LIST_ALL_USERS:
-                    return operation.listAllUsers();
-                case TRANSFER:
-                    return operation.transfer((Transfer) request.getBody());
-                case STATEMENT_OF_ACCOUNT:
-                    return operation.statementOfAccount((User) request.getBody());
-                case BANK_AMOUNT:
-                    return operation.bankAmount();
             }
         }
 
-        return false;
+        return new Response(ResponseCode.ERROR, "Code not found");
     }
 
-    public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("error");
-            return;
-        }
+    public boolean isAuth(User user) {
+        UserDAO userDAO = new UserDAO();
 
-        new Main().start(args[0]);
+        User userDB = userDAO.findBy("id", String.valueOf(user.getId()));
+        return userDB.getOnline() == 1;
     }
 
     @Override
@@ -164,5 +175,14 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
     @Override
     public void awaited(String s, Owner owner) {
         System.out.println(owner.toString() + " esperou para liberar a trava.");
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.out.println("error");
+            return;
+        }
+
+        new Main().start(args[0]);
     }
 }
