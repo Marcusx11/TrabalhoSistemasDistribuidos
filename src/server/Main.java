@@ -65,8 +65,6 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
             userId = user.getId();
         }
 
-        System.out.println(userId);
-
         userCounter = counterService.getOrCreateCounter("user_id", userId);
         transferCounter = counterService.getOrCreateCounter("transfer_id", 1);
     }

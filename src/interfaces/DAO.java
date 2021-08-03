@@ -1,7 +1,5 @@
 package interfaces;
 
-import core.models.transfer.Transfer;
-
 import java.util.List;
 
 public interface DAO<T> {
