@@ -14,6 +14,8 @@ import org.jgroups.blocks.atomic.CounterService;
 import org.jgroups.blocks.locking.LockNotification;
 import org.jgroups.util.Owner;
 import org.jgroups.util.Util;
+
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -42,6 +44,7 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
 
             channel.setReceiver(this);
             channel.connect(Constants.CHANNEL_CLUSTER_NAME);
+            channel.getState(null, 10000);
 
             authentication = new Authentication();
             operation = new Operation();
@@ -98,6 +101,11 @@ public class Main extends ReceiverAdapter implements RequestHandler, LockNotific
         if(myAddress.equals(coordinator)) {
             this.createRmiInstance();
         }
+    }
+
+    @Override
+    public void getState(OutputStream output) throws Exception {
+
     }
 
     @Override
